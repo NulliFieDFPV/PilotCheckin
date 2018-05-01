@@ -10,7 +10,7 @@ class cCheckIn(object):
 
 
     def __init__(self):
-        
+
         self.__active = True
 
         self.__listen()
