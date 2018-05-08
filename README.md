@@ -75,6 +75,7 @@ Relay                    D4
 
  Raspberry Pi:
  #TODO
+ 
             Pi 3 B+      Arduino
             GPIO         Nano v3
 Signal      Pin          Pin
