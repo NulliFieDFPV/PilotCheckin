@@ -56,8 +56,8 @@ Konfiguration:
 Anschlussplan:
 Arduino:
 
-          |  MFRC522     | Arduino
-          |  Reader/PCD  | Nano v3
+              |  MFRC522     | Arduino
+              |  Reader/PCD  | Nano v3
     Signal    |  Pin         | Pin
     -------------------------------------
     RST/Reset |  RST         | D9
@@ -76,13 +76,13 @@ Arduino:
  Raspberry Pi:
  #TODO
 
-            Pi 3 B+      Arduino
-            GPIO         Nano v3
-Signal      Pin          Pin
--------------------------------------
-??? I2c
+                Pi 3 B+      Arduino
+                GPIO         Nano v3
+    Signal      Pin          Pin
+    -------------------------------------
+    ??? I2c
 
-redLed       ??
-greenLed     ??
-blueLed      ??
-Button       ??
+    redLed       ??
+    greenLed     ??
+    blueLed      ??
+    Button       ??
