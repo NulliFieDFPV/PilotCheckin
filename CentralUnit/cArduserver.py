@@ -71,6 +71,45 @@ class ioserver(object):
 
             self.__serial.write(response)
 
+    def __command_CHK(self, cardId, cardSlot):
+
+        pilotId= self.__findCardId(cardId)
+
+        if pilotId>0:
+            #Pilot existiert schon mal
+            # schauen, ob er irgendwo eingecheckt ist
+            channelId= self.__getCheckIn(self, cardId)
+            if channelId==0:
+                #warteschlangen-id
+                wid=self.__setCheckIn(cardId, cardSlot)
+
+                # TODO Schreibefunktion
+                response="RSP:CHK{}:SLT{};".format(cardId, cardSlot)
+
+                self.__serial.write(response)
+
+    def __setCheckIn(self, cardId):
+        wid = 0
+
+        # TODO Warteschlangeneintrag setzen
+
+        return wid
+
+    def __getCheckIn(self, cardId):
+        channelId = 0
+
+        # TODO in Warteschlangen nach Piloten suchen
+
+        return channelId
+
+
+    def __findCardId(self, cardId):
+        pilotId=0
+
+        #TODO in Daba nach Piloten suchen
+
+        return pilotId
+
 
     def __starten(self):
 

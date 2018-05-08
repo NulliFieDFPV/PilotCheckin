@@ -86,3 +86,16 @@ Arduino:
     greenLed     ??
     blueLed      ??
     Button       ??
+    
+To Dos
+- Implementierung Pi (aktuelle Testumgebung Debian Standard Installation in VirtualBox)
+- i2C Schnittstelle (Pi)
+- i2C Schnittstelle (Arduino)
+- User Interface
+- Webseite
+- Button Signal am Pi
+- LEDs am Pi
+
+- LEDs durch WS2812 austauschen
+- Farbe pro Channel definieren und an den Scannern anzeigen
+- Code aufhübschen
