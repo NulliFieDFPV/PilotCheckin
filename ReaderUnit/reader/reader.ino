@@ -45,6 +45,10 @@
 #define LED_OFF LOW
 #endif
 
+#define MAX_WORLD_COUNT 5
+#define MIN_WORLD_COUNT 2
+char *Words[MAX_WORLD_COUNT];
+
 constexpr uint8_t redLed = 7;   // Set Led Pins
 constexpr uint8_t greenLed = 6;
 constexpr uint8_t blueLed = 5;
@@ -55,8 +59,9 @@ constexpr uint8_t wipeB = 3;     // Button pin for WipeMode
 bool programMode = false;  // initialize programming mode to false
 
 uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reader
-uint8_t slot; 
+String slot="0000"; 
 uint8_t checkin;
+int incomingByte=0;
 
 byte storedCard[4];   // Stores an ID read from EEPROM
 byte readCard[4];   // Stores scanned ID read from RFID Module
@@ -157,8 +162,21 @@ void setup() {
     masterCard[i] = EEPROM.read(2 + i);    // Write it to masterCard
     Serial.print(masterCard[i], HEX);
   }
-  
+
+    
   Serial.println("");
+  Serial.println(F("This Module is connected as Slot:"));
+  Serial.print(slot);
+ 
+  Serial.println("");
+
+
+  Serial.print(F("ASK:WLK"));
+  Serial.print(slot);
+  
+  Serial.println(F(";"));
+
+  
   Serial.println(F("-------------------"));
   Serial.println(F("Everything is ready"));
   Serial.println(F("Waiting Pilot's Card to be scanned"));
@@ -195,6 +213,26 @@ void loop () {
     else {
       normalModeOn();     // Normal mode, blue Power LED is on, all others are off
     }
+
+    do {
+      if (Serial.available() >0) {
+        //TODO auslesen einbauen
+        String msg=Serial.readString();
+        if (msg== "RSP:SETSLOT:SLT0001;") {
+          String[] arrCmd=splitCommand(msg);
+          for(int i = 0; i < 3; i++) {
+              Serial.println(arrCmd[i]);
+          }
+          Serial.println("--------------------");
+          setSlot("0001");
+        }
+        
+        Serial.println("");
+        
+      }
+    }
+    while (Serial.available() >0);
+    
   }
   while (!successRead);   //the program will not go further while you are not getting a successful read
 
@@ -255,6 +293,35 @@ void loop () {
   }
 }
 
+String[] splitCommand(String text, char splitChar) {
+    int splitCount = countSplitCharacters(text, splitChar);
+    String returnValue[splitCount];
+    int index = -1;
+    int index2;
+
+    for(int i = 0; i < splitCount - 1; i++) {
+        index = text.indexOf(splitChar, index + 1);
+        index2 = text.indexOf(splitChar, index + 1);
+
+        if(index2 < 0) index2 = text.length() - 1;
+        returnValue[i] = text.substring(index, index2);
+    }
+
+    return returnValue;
+}
+
+int countSplitCharacters(String text, char splitChar) {
+    int returnValue = 0;
+    int index = -1;
+
+    while (index > -1) {
+        index = text.indexOf(splitChar, index + 1);
+
+        if(index > -1) returnValue+=1;
+    }
+
+    return returnValue;
+} 
 
 //LED Playground
 /////////////////////////////////////////  Access Granted    ///////////////////////////////////
@@ -298,6 +365,15 @@ uint8_t getID() {
   Serial.println("");
   mfrc522.PICC_HaltA(); // Stop reading
   return 1;
+}
+
+void setSlot(String newslot) {
+  slot=newslot;
+  Serial.println("");
+  Serial.println(F("This Module is now connected as Slot:"));
+  Serial.println(slot);
+  Serial.println("");
+  
 }
 
 void ShowReaderDetails() {
@@ -353,11 +429,19 @@ void writeID( byte a[] ) {
   if ( !findID( a ) ) {     // Before we write to the EEPROM, check to see if we have seen this card before!
     //TODO ID an Master zwecks Registrierung
     successWrite();
-    Serial.println(F("Succesfully added ID record to EEPROM"));
+
+    Serial.print(F("CMD:ADD"));
+    for ( uint8_t i = 0; i < 4; i++) {  //
+      Serial.print(a[i], HEX);
+    }
+    Serial.print(F(":SLT"));
+    Serial.print(slot);
+    Serial.println(F(";"));
+    Serial.println(F("Succesfully added ID record to List"));
   }
   else {
     failedWrite();
-    Serial.println(F("Failed! There is something wrong with ID or bad EEPROM"));
+    Serial.println(F("Failed! There is something wrong with ID or bad List"));
   }
 }
 
@@ -365,12 +449,22 @@ void writeID( byte a[] ) {
 void deleteID( byte a[] ) {
   if ( !findID( a ) ) {     // Before we delete from the EEPROM, check to see if we have this card!
     failedWrite();      // If not
-    Serial.println(F("Failed! There is something wrong with ID or bad EEPROM"));
+    Serial.println(F("Failed! There is something wrong with ID or bad List"));
   }
   else {
     //TODO ID löschen
     successDelete();
-    Serial.println(F("Succesfully removed ID record from EEPROM"));
+    
+    Serial.print(F("CMD:RMV"));
+    for ( uint8_t i = 0; i < 4; i++) {  //
+      Serial.print(a[i], HEX);
+    }
+    Serial.print(F(":SLT"));
+    for ( uint8_t i = 0; i < 4; i++) {  //
+      Serial.print(slot);
+    }  
+    Serial.println(F(";"));
+    Serial.println(F("Succesfully removed ID record from List"));
   }
 }
 
@@ -386,11 +480,20 @@ bool checkTwo ( byte a[], byte b[] ) {
 
 
 ///////////////////////////////////////// Find ID From EEPROM   ///////////////////////////////////
-uint8_t checkIn( byte a[] ) {
+uint8_t checkIn( byte a[]) {
   //-1==bereits checkin
   //-2==nicht registiert
   //>-1 ==warteposition
+  
   //TODO Pi Slot + ID schicken
+  Serial.print(F("CMD:CHK"));
+  for ( uint8_t i = 0; i < 4; i++) {  //
+    Serial.print(a[i], HEX);
+  }
+  Serial.print(F(":SLT"));
+  Serial.print(slot);
+  Serial.println(F(";"));
+  
   return 6;
 }
 
