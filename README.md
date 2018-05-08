@@ -58,19 +58,19 @@ Arduino:
 
           |  MFRC522     | Arduino
           |  Reader/PCD  | Nano v3
-Signal    |  Pin         | Pin
--------------------------------------
-RST/Reset |  RST         | D9
-SPI SS    |  SDA(SS)     | D10
-SPI MOSI  |  MOSI        | D11
-SPI MISO  |  MISO        | 12
-SPI SCK   |  SCK         | D13
+    Signal    |  Pin         | Pin
+    -------------------------------------
+    RST/Reset |  RST         | D9
+    SPI SS    |  SDA(SS)     | D10
+    SPI MOSI  |  MOSI        | D11
+    SPI MISO  |  MISO        | 12
+    SPI SCK   |  SCK         | D13
 
-redLed    |              | D7
-greenLed  |              | D6
-blueLed   |              | D5
-Button    |              | D3
-Relay     |              | D4
+    redLed    |              | D7
+    greenLed  |              | D6
+    blueLed   |              | D5
+    Button    |              | D3
+    Relay     |              | D4
 
 
  Raspberry Pi:
