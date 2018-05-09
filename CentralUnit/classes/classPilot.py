@@ -30,6 +30,12 @@ class cPilot(object):
             self.__uid= row["UID"]
             self.__callsign= row["callsign"]
 
+        sql="SELECT * FROM trfid WHERE PID={};".format(self.__pid)
+
+        result=mydb.query(sql)
+
+        for row in result:
+            self.__uid= row["UID"]
 
 
     def __updateCheckInData(self,forceUpdate=False):

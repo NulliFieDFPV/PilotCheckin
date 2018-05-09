@@ -10,6 +10,7 @@ class cChannel(object):
         self.__channel = 0
         self.__band = 0
         self.__status = 0
+        self.__slot="0000"
 
         self.__getData()
 
@@ -25,7 +26,7 @@ class cChannel(object):
             self.__channel=row["channel"]
             self.__band=row["band"]
             self.__status=row["status"]
-
+            self.__slot=row["slot"]
 
     def waitList(self, rid):
 
@@ -62,6 +63,10 @@ class cChannel(object):
     @property
     def band(self):
         return self.__band
+
+    @property
+    def slot(self):
+        return self.__slot
 
     @property
     def channelname(self):
