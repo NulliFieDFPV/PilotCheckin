@@ -69,7 +69,6 @@ class cPilot(object):
         if forceUpdate:
             if isFlying:
                 self.stopHeat()
-                self.__updateCheckInData()
 
 
     def setCheckIn(self, cid):
