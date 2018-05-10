@@ -21,7 +21,6 @@
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
 
 
-
 /*
   Instead of a Relay you may want to use a servo. Servos can lock and unlock door locks too
   Relay will be used by default
@@ -44,10 +43,6 @@
 #define LED_ON HIGH
 #define LED_OFF LOW
 #endif
-
-#define MAX_WORLD_COUNT 5
-#define MIN_WORLD_COUNT 2
-char *Words[MAX_WORLD_COUNT];
 
 constexpr uint8_t redLed = 7;   // Set Led Pins
 constexpr uint8_t greenLed = 6;
@@ -269,6 +264,7 @@ void loop () {
       else {                    // If scanned card is not known add it
       */
         Serial.println(F("Adding Pilot's Card..."));
+        
         writeID(readCard);
         Serial.println(F("-----------------------------"));
         Serial.println(F("Scan a Pilot's Card to ADD or REMOVE to List"));
@@ -293,6 +289,23 @@ void loop () {
   }
 }
 
+
+String CreateHexString(byte data[]) {
+  
+char c[8];
+byte b;
+
+for (int y = 0, x = 0; y < 4; ++y, ++x)
+{
+  b = ((byte)(data[y] >> 4));
+  c[x] = (char)(b > 9 ? b + 0x37 : b + 0x30);
+  b = ((byte)(data[y] & 0xF));
+  c[++x] = (char)(b > 9 ? b + 0x37 : b + 0x30);
+}
+
+  return c;
+}
+
 void parseCommand(String mybuffer) {
   
   String msg="";
@@ -305,7 +318,6 @@ void parseCommand(String mybuffer) {
   String cmdCard="";
   String cmdReason="";
   bool booResponse=false;
-
   
   for (int i = 0; i < intCount; i++)
   {
@@ -375,7 +387,9 @@ void parseCommand(String mybuffer) {
   }
 
   if (booResponse==true) {
+
     Serial.println("--------------------");
+    
     Serial.println(commando);
     Serial.println(cmdSlot);
     Serial.println(cmdStatus);
@@ -391,12 +405,14 @@ void parseCommand(String mybuffer) {
       if (cmdStatus=="ok") {
         if (cmdReason=="delete") {
           Serial.println(F("Removing Pilot's Card..."));
-          deleteID(cmdCard);
+          //Machen wir das hier überhaupt noch??
+          //deleteID(cmdCard);
           Serial.println("-----------------------------");
         }
         if (cmdReason=="add") {
           Serial.println(F("Adding Pilot's Card..."));
-          writeID(cmdCard);
+          //Machen wir das hier überhaupt noch??
+          //writeID(cmdCard);
           Serial.println("-----------------------------");
         }
       }
@@ -407,7 +423,7 @@ void parseCommand(String mybuffer) {
     else if (commando=="CHK") {
       
       if (cmdStatus=="ok") {
-        Serial.print(F("Pilot "));
+        Serial.print(F("Pilot ID "));
         Serial.print(cmdCard);
         Serial.print(F(" Checked In At "));
         Serial.println(cmdSlot);
@@ -416,7 +432,7 @@ void parseCommand(String mybuffer) {
      
       }
       else if (cmdStatus=="failed") {
-        Serial.print(F("Pilot "));
+        Serial.print(F("Pilot ID "));
         Serial.print(cmdCard);
         Serial.print(F(" NOT Checked In At "));
         Serial.println(cmdSlot);
@@ -425,25 +441,25 @@ void parseCommand(String mybuffer) {
         
       }
       else if (cmdStatus=="notreg") {
-        Serial.print(F("Pilot "));
+        Serial.print(F("Pilot ID "));
         Serial.print(cmdCard);
-        Serial.print(F(" NOT registered "));
+        Serial.println(F(" NOT registered "));
   
         denied();
   
       }
       else if (cmdStatus=="noatt") {
-        Serial.print(F("Pilot "));
+        Serial.print(F("Pilot ID "));
         Serial.print(cmdCard);
-        Serial.print(F(" NO attendance"));
+        Serial.println(F(" NO attendance"));
   
         denied();
   
       }
       else if (cmdStatus=="nochan") {
-        Serial.print(F("Pilot "));
+        Serial.print(F("Pilot ID "));
         Serial.print(cmdCard);
-        Serial.print(F(" WRONG slot"));
+        Serial.println(F(" WRONG slot"));
   
         denied();
       }
@@ -451,38 +467,38 @@ void parseCommand(String mybuffer) {
     
     else if (commando=="ADD") {
       if (cmdStatus=="ok") {
-        Serial.println(F("Succesfully added ID "));
-        Serial.print(cmdCard);
-        Serial.println(F(" record to List"));
+        Serial.print(F("Succesfully added ID "));
+        Serial.println(cmdCard);
         successWrite();
       }
       else {
+        Serial.print(F("Adding Failed ID "));
+        Serial.println(cmdCard);
         failedWrite();
       }
     }
     
     else if (commando=="RMV") {
       if (cmdStatus=="ok") {
-        Serial.println(F("Succesfully disabled ID "));
-        Serial.print(cmdCard);
-        Serial.println(F(" record in List"));
+        Serial.print(F("Succesfully disabled ID "));
+        Serial.println(cmdCard);
         successDelete();
       }
       else {
+        Serial.print(F("Removing Failed ID "));
+        Serial.println(cmdCard);
         failedWrite();
       }
     }
     else if (commando=="RST") {
       if (cmdStatus=="ok") {
-        Serial.println(F("Succesfully resetted ID "));
-        Serial.print(cmdCard);
-        Serial.println(F(" record in List"));
+        Serial.print(F("Succesfully resetted ID "));
+        Serial.println(cmdCard);
         successDelete();
       }
       else {
-        Serial.println(F("Pilot "));
-        Serial.print(cmdCard);
-        Serial.println(F(" reset failed"));
+        Serial.print(F("Reset Failed ID "));
+        Serial.println(cmdCard);
         failedWrite();
       }
     }
@@ -592,10 +608,12 @@ void normalModeOn () {
 }
 
 ///////////////////////////////////////// Add ID to EEPROM   ///////////////////////////////////
-void writeID( String a ) {
-  //TODO - String kommt komisch an, war als byte [] nicht der fall
+void writeID( byte a[]) {
+
   Serial.print(F("CMD:ADD"));
-  Serial.print(a);
+  for ( uint8_t i = 0; i < 4; i++) {  //
+    Serial.print(a[i], HEX);
+  }
   Serial.print(F(":SLT"));
   Serial.print(slot);
   Serial.println(F(";"));
