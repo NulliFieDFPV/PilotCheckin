@@ -1,5 +1,5 @@
 from modules.mDb import db
-
+from config.cfg_db import tables as sqltbl
 import datetime
 
 class cPilot(object):
@@ -22,7 +22,7 @@ class cPilot(object):
     def __getData(self):
 
         mydb=db()
-        sql="SELECT * FROM tpilots WHERE PID={};".format(self.__pid)
+        sql="SELECT * FROM {0} WHERE PID={1};".format(sqltbl["pilots"],self.__pid)
 
         result=mydb.query(sql)
 
@@ -30,7 +30,7 @@ class cPilot(object):
             self.__uid= row["UID"]
             self.__callsign= row["callsign"]
 
-        sql="SELECT * FROM trfid WHERE PID={};".format(self.__pid)
+        sql="SELECT * FROM {0} WHERE PID={1};".format(sqltbl["rfid"], self.__pid)
 
         result=mydb.query(sql)
 
@@ -46,8 +46,8 @@ class cPilot(object):
 
         mydb = db()
 
-        sql = "SELECT a.WID, w.CID, w.status FROM tattendance a "
-        sql = sql + "INNER JOIN twaitlist w "
+        sql = "SELECT a.WID, w.CID, w.status FROM {} a ".format(sqltbl["attendance"])
+        sql = sql + "INNER JOIN {} w ".format(sqltbl["waitlist"])
         sql = sql + "ON a.WID=w.WID "
         sql = sql + "WHERE a.AID={} ".format(self.__attendieid)
         sql = sql + "AND w.status IN(-1,1)"
@@ -70,20 +70,23 @@ class cPilot(object):
             if isFlying:
                 self.stopHeat()
 
+
     def setCheckIn(self, cid):
 
-        # TODO: Pruefung
+        # TODO: Pruefung -> oder doch nur dumm ausfuehren und das Race entscheiden lassen?
+        datum=datetime.datetime.now()
 
         mydb = db()
-        sql = "UPDATE twaitlist SET "
-        sql = sql + "status=0 "
+        sql = "UPDATE {} SET ".format(sqltbl["waitlist"])
+        sql = sql + "status=0, update_date='{}', update_time='{}' ".format(datum.strftime("%Y-%m-%d"), datum.strftime("%H:%M:%S"))
+
         sql = sql + "WHERE AID={}".format(self.__attendieid)
 
         mydb.query(sql)
 
 
-        sql = "INSERT INTO twaitlist SET "
-        sql = sql + "AID={}, RID={}, CID={}, wait_date='{}', wait_time='{}', ".format(self.__attendieid, self.__rid, cid, datetime.datetime.now().strftime("%Y-%m-%d"), datetime.datetime.now().strftime("%H:%M:%S"))
+        sql = "INSERT INTO {} SET ".format(sqltbl["waitlist"])
+        sql = sql + "AID={0}, RID={1}, CID={2}, wait_date='{3}', wait_time='{4}', update_date='{3}', update_time='{4}', ".format(self.__attendieid, self.__rid, cid, datum.strftime("%Y-%m-%d"), datum.strftime("%H:%M:%S"))
         sql = sql + "status=-1"
 
         result=mydb.query(sql)
@@ -92,7 +95,7 @@ class cPilot(object):
         self.__cid = cid
 
 
-        sql = "UPDATE tattendance SET "
+        sql = "UPDATE {} SET ".format(sqltbl["attendance"])
         sql = sql + "WID={} ".format(self.__waitid)
         sql = sql + "WHERE AID={} ".format(self.__attendieid)
 
@@ -105,9 +108,12 @@ class cPilot(object):
 
     def startHeat(self):
 
+        datum = datetime.datetime.now()
+
         mydb = db()
-        sql = "UPDATE twaitlist SET "
-        sql = sql + "status=1 "
+        sql = "UPDATE {} SET ".format(sqltbl["waitlist"])
+        sql = sql + "status=1, update_date='{}', update_time='{}' ".format(datum.strftime("%Y-%m-%d"),
+                                                                           datum.strftime("%H:%M:%S"))
         sql = sql + "WHERE WID={}".format(self.__waitid)
 
         mydb.query(sql)
@@ -118,14 +124,65 @@ class cPilot(object):
 
     def stopHeat(self):
 
+        datum = datetime.datetime.now()
+
         mydb = db()
-        sql = "UPDATE twaitlist SET "
-        sql = sql + "status=0 "
+        sql = "UPDATE {} SET ".format(sqltbl["waitlist"])
+        sql = sql + "status=0, update_date='{}', update_time='{}' ".format(datum.strftime("%Y-%m-%d"),
+                                                                           datum.strftime("%H:%M:%S"))
         sql = sql + "WHERE WID={}".format(self.__waitid)
 
         mydb.query(sql)
 
         self.__updateCheckInData()
+
+    def resetCheckIn(self):
+
+        datum = datetime.datetime.now()
+
+        mydb = db()
+        sql = "UPDATE {} SET ".format(sqltbl["waitlist"])
+        sql = sql + "status=-1, update_date='{}', update_time='{}' ".format(datum.strftime("%Y-%m-%d"), datum.strftime("%H:%M:%S"))
+        sql = sql + "WHERE AID={}".format(self.__attendieid)
+        mydb.query(sql)
+
+        sql = "UPDATE {} SET ".format(sqltbl["attendance"])
+        sql = sql + "WID=0 "
+        sql = sql + "WHERE AID={} ".format(self.__attendieid)
+        mydb.query(sql)
+
+
+
+    def rerunIhrIdioten(self):
+
+        waitid=0
+        datum= datetime.datetime.now()
+
+
+        mydb = db()
+        sql = "SELECT * FROM {} ".format(sqltbl["waitlist"])
+        sql = sql + "WHERE status IN (0,1) "
+        sql = sql + "AND AID={} ".format(self.__attendieid)
+        sql = sql + "ORDER BY status DESC, update_date DESC, update_time DESC "
+
+        sql = sql + "LIMIT 1"
+
+        result=mydb.query(sql)
+
+        for row in result:
+            waitid=row["WID"]
+
+        self.resetCheckIn()
+
+        sql = "UPDATE {} SET ".format(sqltbl["waitlist"])
+        sql = sql + "status=-1, update_date='{}', update_time='{}' ".format(datum.strftime("%Y-%m-%d"), datum.strftime("%H:%M:%S"))
+        sql = sql + "WHERE WID={}".format(waitid)
+        mydb.query(sql)
+
+        sql = "UPDATE {} SET ".format(sqltbl["attendance"])
+        sql = sql + "WID={} ".format(waitid)
+        sql = sql + "WHERE AID={} ".format(self.__attendieid)
+        mydb.query(sql)
 
 
     def refresh(self):
@@ -137,7 +194,7 @@ class cPilot(object):
         waitpos=0
 
         mydb = db()
-        sql = "SELECT WID FROM twaitlist t1 "
+        sql = "SELECT WID FROM {} ".format(sqltbl["waitlist"])
         sql = sql + "WHERE RID={} ".format(self.__rid)
         sql = sql + "AND CID={} ".format(self.__cid)
         sql = sql + "AND status IN(-1,1) "
@@ -181,9 +238,14 @@ class cPilot(object):
     def pid(self):
         return self.__pid
 
-    @property
-    def cid(self):
+
+    def cid(self, refresh=True):
+
+        if refresh:
+            self.__updateCheckInData()
+
         return self.__cid
+
 
     def waitposition(self, refresh=True):
 
@@ -191,6 +253,7 @@ class cPilot(object):
             self.__updateCheckInData()
 
         return self.__getWaitPosition()
+
 
     @property
     def callsign(self):
