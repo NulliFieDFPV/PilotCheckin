@@ -6,7 +6,7 @@ import datetime
 from classes.classRace import cChannel
 from classes.cHelper import cCommando
 from classes.cHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV
-from classes.cHelper import COM_INFO_RSN, COM_INFO_SLT
+from classes.cHelper import COM_INFO_RSN, COM_INFO_SLT, COM_INFO_RSP
 from classes.cHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
 
 from classes.cHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
@@ -51,7 +51,7 @@ class SlaveNode(cChannel):
                     message=self.__msg_temp + message
                     #print message
 
-                    if message[:3]=="CMD" or message[:3]=="ASK":
+                    if message[:3]==COM_PREFIX_CMD or message[:3]==COM_PREFIX_ASK:
 
                         if message[-1:]==";":
                             #Hier jetzt irgenwat machen
@@ -62,7 +62,7 @@ class SlaveNode(cChannel):
                         else:
                             self.__msg_temp =message
 
-                    elif message[:3]=="RSP":
+                    elif message[:3]==COM_INFO_RSP:
                         #sollte eigentlich nicht vorkommen
                         ausgabe(TYPE_RSP, message, self.__debugmode)
 
