@@ -11,7 +11,7 @@ from classes.cHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, C
 from classes.cHelper import COM_INFO_RSN, COM_INFO_SLT
 from classes.cHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
 
-from classes.cHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP
+from classes.cHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
 from classes.cHelper import ausgabe
 import Queue
 
@@ -71,7 +71,7 @@ class SlaveNode(cChannel):
 
 
                     else:
-                        ausgabe( TYPE_DBG, message, self.__debugmode)
+                        ausgabe( TYPE_INF, message, self.__debugmode)
 
                 time.sleep(0.01)
 
@@ -313,10 +313,15 @@ class ioserver(object):
 
     def __command_ADD(self, cardId, cardSlot):
 
-        pilotId=self.__findCardId(cardId)
-        chkStatus="ok"
-        returnStatus=True
 
+        returnStatus=self.__race.addCard(cardId)
+
+        if returnStatus:
+            chkStatus = "ok"
+        else:
+            chkStatus = "failed"
+
+        """   
         if pilotId==0:
             mydb = db()
             sql = "INSERT INTO trfid SET "
@@ -327,6 +332,7 @@ class ioserver(object):
         else:
             chkStatus="failed"
             returnStatus =False
+        """
 
         response = "RSP:ADD{}:SLT{}:STA{}:".format(cardId, cardSlot, chkStatus)
 
@@ -478,24 +484,10 @@ class ioserver(object):
 
         channelId = 0
 
-        # pilotId=self.__findCardId(cardId)
-        aId=self.__getAttendanceId(cardId)
+        pilot= self.__race.getPilotByCard(cardId)
 
-        if aId==0:
-            return 0
-
-        mydb = db()
-        sql = "SELECT * FROM twaitlist w "
-        sql = sql + "INNER JOIN tattendance a "
-        sql = sql + "ON a.WID=w.WID "
-
-        sql = sql + "WHERE a.AID={} AND w.RID={} ".format(aId, self.__raceid)
-        sql = sql + "AND w.status IN (-1,1) "
-
-        result = mydb.query(sql)
-
-        for row in result:
-            channelId= row["CID"]
+        if not pilot is None:
+            channelId=pilot.cid()
 
         return channelId
 
@@ -520,14 +512,10 @@ class ioserver(object):
         returnStatus=True
 
         try:
+            #Loop, der die Klasse am Leben lassen soll
             while self.__active:
                 returnStatus=False
                 time.sleep(1.01)
-                #print "IO Server Status", self.__active
-
-            #print "IO Server Status", self.__active
-            #self.__serial = serial.Serial(self.__port, 9600, timeout=20)
-            #self.__listener()
 
         except KeyboardInterrupt:
             self.beenden()
@@ -537,6 +525,7 @@ class ioserver(object):
     @property
     def active(self):
         return self.__active
+
 
     def beenden(self):
 
