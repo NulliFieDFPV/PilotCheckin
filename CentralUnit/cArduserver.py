@@ -4,12 +4,12 @@ import serial
 import datetime
 
 from classes.classRace import cRace
-from classes.cHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV
-from classes.cHelper import COM_INFO_RSN, COM_INFO_SLT
-from classes.cHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
-from classes.cNode import SlaveNode
-from classes.cHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
-from classes.cHelper import ausgabe
+from classes.classHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV
+from classes.classHelper import COM_INFO_RSN, COM_INFO_SLT
+from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
+from classes.classNode import SlaveNode
+from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
+from classes.classHelper import ausgabe
 import Queue
 
 import threading

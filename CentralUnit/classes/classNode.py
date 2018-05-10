@@ -4,13 +4,13 @@ import serial
 import datetime
 
 from classes.classRace import cChannel
-from classes.cHelper import cCommando
-from classes.cHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV
-from classes.cHelper import COM_INFO_RSN, COM_INFO_SLT, COM_INFO_RSP
-from classes.cHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
+from classes.classHelper import cCommando
+from classes.classHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV
+from classes.classHelper import COM_INFO_RSN, COM_INFO_SLT, COM_INFO_RSP
+from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
 
-from classes.cHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
-from classes.cHelper import ausgabe
+from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
+from classes.classHelper import ausgabe
 
 
 import threading
