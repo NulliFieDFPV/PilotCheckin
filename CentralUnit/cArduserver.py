@@ -321,18 +321,6 @@ class ioserver(object):
         else:
             chkStatus = "failed"
 
-        """   
-        if pilotId==0:
-            mydb = db()
-            sql = "INSERT INTO trfid SET "
-            sql = sql + "UID='{}', ".format(cardId)
-            sql = sql + "status=0"
-            mydb.query(sql)
-
-        else:
-            chkStatus="failed"
-            returnStatus =False
-        """
 
         response = "RSP:ADD{}:SLT{}:STA{}:".format(cardId, cardSlot, chkStatus)
 
