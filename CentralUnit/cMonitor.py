@@ -47,9 +47,6 @@ class monitor(object):
                 columns[channel.channelname]=waitlist
 
 
-
-
-
             for channelname, waitlist in sorted(columns.items()):
                 i = 1
                 outputline = channelname + ": "
