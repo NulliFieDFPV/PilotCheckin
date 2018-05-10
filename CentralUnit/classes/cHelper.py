@@ -17,7 +17,7 @@ TYPE_CMD = "[CMD]"
 TYPE_RSP = "[RSP]"
 TYPE_DBG = "[DBG]"
 TYPE_ERR = "[ERR]"
-
+TYPE_INF = "[INF]"
 
 def ausgabe(type, message,debugmode=False):
 
@@ -76,6 +76,7 @@ class cCommando(object):
 
             elif cmdTmp == COM_COMMAND_WLK:
                 self.slotBefore = cmd[3:]
+                self.slot =self.slotBefore
                 self.commando = cmdTmp
                 # print "remove", cardId
 
