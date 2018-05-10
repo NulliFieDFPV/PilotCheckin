@@ -16,12 +16,12 @@ from classes.cHelper import ausgabe
 import Queue
 
 import threading
-import signal
 import os
 
 
 
 class SlaveNode(cChannel):
+
 
     def __init__(self, cid,queue, debugmode=False):
 
@@ -33,7 +33,7 @@ class SlaveNode(cChannel):
         self.__msg_temp=""
 
         if self.port !="":
-            self.__con= serial.Serial(self.port, 9600, timeout=20)
+            self.__con= serial.Serial(self.port, 9600, timeout=5)
 
         self.__thListen=threading.Thread(target=self.__listenToNode,args=())
         self.__thListen.start()
@@ -41,37 +41,57 @@ class SlaveNode(cChannel):
 
     def __listenToNode(self):
 
-        while self.__active==True:
-            message =""
+        try:
 
-            if not self.__con is None:
-                message = self.__con.readline().strip()
+            while self.__active==True:
+                message =""
 
-            if len(message)>0:
-                #print(message)
-                message=self.__msg_temp + message
-                #print message
+                if not self.__con is None:
+                    message = self.__con.readline().strip()
 
-                if message[:3]=="CMD" or message[:3]=="ASK":
+                if len(message)>0:
+                    #print(message)
+                    message=self.__msg_temp + message
+                    #print message
 
-                    if message[-1:]==";":
-                        #Hier jetzt irgenwat machen
-                        newcommand=self.__parseCommand(message.replace(";", ""))
-                        self.__queue.put(newcommand)
+                    if message[:3]=="CMD" or message[:3]=="ASK":
 
-                        self.__msg_temp=""
+                        if message[-1:]==";":
+                            #Hier jetzt irgenwat machen
+                            newcommand=self.__parseCommand(message.replace(";", ""))
+                            self.__queue.put(newcommand)
+
+                            self.__msg_temp=""
+                        else:
+                            self.__msg_temp =message
+
+                    elif message[:3]=="RSP":
+                        #sollte eigentlich nicht vorkommen
+                        ausgabe(TYPE_RSP, message, self.__debugmode)
+
+
                     else:
-                        self.__msg_temp =message
+                        ausgabe( TYPE_DBG, message, self.__debugmode)
 
-                elif message[:3]=="RSP":
-                    #sollte eigentlich nicht vorkommen
-                    ausgabe(TYPE_RSP, message, self.__debugmode)
+                time.sleep(0.01)
+
+        except KeyboardInterrupt:
+            ausgabe(TYPE_DBG, "Abbruch mit STRG+C ({}) beendet".format(self.port), self.__debugmode)
+            self.beenden()
+
+        except:
+            self.beenden()
+
+        ausgabe(TYPE_DBG, "ListenToNode ({}) beendet".format(self.port), self.__debugmode)
+
+    @property
+    def active(self):
+        return self.__active
 
 
-                else:
-                    ausgabe( TYPE_DBG, message, self.__debugmode)
-
-            time.sleep(0.01)
+    @property
+    def connected(self):
+        return (not self.__con is None)
 
 
     def sendToNode(self, message, nodeId=None):
@@ -106,6 +126,29 @@ class SlaveNode(cChannel):
         return newcommand
 
 
+    def __del__(self):
+
+        ausgabe(TYPE_DBG, "Node ({}) beendet".format(self.slot), self.__debugmode)
+
+
+    def beenden(self):
+
+        returnStatus=True
+
+        self.__active=False
+
+        ausgabe(TYPE_DBG, "Node ({}) beenden".format(self.slot), self.__debugmode)
+
+        #Threads beenden
+        #Serial schliessen
+        if not self.__con is None:
+            self.__con.close()
+
+        self.__queue.put(None)
+
+        return returnStatus
+
+
 class ioserver(object):
 
 
@@ -127,6 +170,8 @@ class ioserver(object):
         self.__lastCards={}
         self.__nodes={}
         self.__nodeQueues={}
+        self.__nodesAngemeldet =0
+
         #setup
         self.__active = True
         self.__port = '/dev/ttyUSB0'
@@ -134,9 +179,11 @@ class ioserver(object):
 
         self.__setupRace(raceid)
 
-
-
         self.__starten()
+
+        ausgabe(TYPE_DBG,"INIT beendet", self.__debugmode)
+
+        return None
 
 
     def __setupRace(self, raceid):
@@ -146,6 +193,7 @@ class ioserver(object):
 
         if raceid>0:
             self.__race = cRace(raceid)
+            self.__nodesAngemeldet =0
 
             channels=self.__race.channels()
             self.__q = Queue.Queue()
@@ -157,6 +205,8 @@ class ioserver(object):
                 #Dem Modul den slot zuweisen
 
                 self.__nodes[channel.slot]=SlaveNode(cid, self.__q,self.__debugmode)
+                if self.__nodes[channel.slot].connected:
+                    self.__nodesAngemeldet =self.__nodesAngemeldet +1
 
         else:
             returnStatus=False
@@ -166,57 +216,30 @@ class ioserver(object):
 
     def __readQueue(self):
 
-        while self.__active:
-            newcommand=self.__q.get()
-            ausgabe(TYPE_DBG, "Neue Meldung von {}".format(newcommand.slot), self.__debugmode)
+        try:
+            while self.__active:
+                if self.__nodesAngemeldet>0:
+                    newcommand=self.__q.get()
+                    if not newcommand is None:
+                        ausgabe(TYPE_DBG, "Neue Meldung von {}".format(newcommand.slot), self.__debugmode)
 
-            self.__parseCommand2(newcommand)
-            self.__q.task_done()
+                        self.__parseCommand(newcommand)
+                    else:
+                        ausgabe(TYPE_DBG, "None erhalten", self.__debugmode)
+                        self.__nodesAngemeldet=self.__nodesAngemeldet-1
+                    self.__q.task_done()
 
 
-    def __parseCommand2(self, newcommand):
+                time.sleep(0.01)
+        except KeyboardInterrupt:
+            ausgabe(TYPE_DBG, "Abbruch mit STRG+C readQueue", self.__debugmode)
+
+        ausgabe(TYPE_DBG, "readQueue beendet", self.__debugmode)
+
+
+    def __parseCommand(self, newcommand):
 
         returnStatus=True
-
-        if self.__raceid>0:
-
-            if newcommand.isValid:
-
-                ausgabe(TYPE_CMD, newcommand.commando + " " + newcommand.cardId + " " + newcommand.slot, self.__debugmode)
-
-                if newcommand.commando == COM_COMMAND_ADD:
-                    self.__command_ADD(newcommand.cardId, newcommand.slot)
-
-                elif newcommand.commando == COM_COMMAND_RMV:
-                    self.__command_RMV(newcommand.cardId, newcommand.slot)
-
-                elif newcommand.commando == COM_COMMAND_CHK:
-                    self.__command_CHK(newcommand.cardId, newcommand.slot)
-
-                elif newcommand.commando == COM_COMMAND_WLK:
-                    self.__command_WLK("0001")
-
-                elif newcommand.commando == COM_COMMAND_EXS:
-                    self.__command_EXS(newcommand.cardId, newcommand.reason, newcommand.slot)
-
-
-        else:
-            ausgabe(TYPE_ERR,"Kein Race gewaehlt", self.__debugmode)
-
-
-        return returnStatus
-
-
-
-    def __parseCommand(self, message):
-
-        # Message komplett
-        #print message
-        returnStatus = True
-        lstCmd = message.split(":")
-
-        newcommand = cCommando(lstCmd)
-
 
         if self.__raceid>0:
 
@@ -496,56 +519,58 @@ class ioserver(object):
 
         returnStatus=True
 
-        while self.__active:
-            returnStatus=False
-            time.sleep(0.0)
+        try:
+            while self.__active:
+                returnStatus=False
+                time.sleep(1.01)
+                #print "IO Server Status", self.__active
 
-        #self.__serial = serial.Serial(self.__port, 9600, timeout=20)
-        #self.__listener()
+            #print "IO Server Status", self.__active
+            #self.__serial = serial.Serial(self.__port, 9600, timeout=20)
+            #self.__listener()
 
-
-        return returnStatus
-
-
-
-
-
-    def __listener(self):
-
-        returnStatus=True
-
-        while self.__active:
-
-            #message = self.__serial .readline().strip()
-            message=""
-            if len(message)>0:
-                message=self.__msg_temp + message
-                #print message
-
-                if message[:3]=="CMD" or message[:3]=="ASK":
-
-                    if message[-1:]==";":
-                        self.__parseCommand(message.replace(";", ""))
-
-                        self.__msg_temp=""
-                    else:
-                        self.__msg_temp =message
-
-                elif message[:3]=="RSP":
-                    ausgabe(TYPE_RSP, message, self.__debugmode)
-
-
-                else:
-                    ausgabe( TYPE_DBG, message, self.__debugmode)
-
-            #auf port lauschen, bis was reinkommt
-            #print "lauschen"
-            time.sleep(10.01)
+        except KeyboardInterrupt:
+            self.beenden()
 
         return returnStatus
 
+    @property
+    def active(self):
+        return self.__active
+
+    def beenden(self):
+
+
+        for cid, node in self.__nodes.items():
+            ausgabe(TYPE_DBG, "Node {} beenden".format(node.slot), self.__debugmode)
+            node.beenden()
+            #print(node.active, node.slot)
+            self.__nodes[cid]=None
+            time.sleep(1)
+
+
+        self.__active = False
+
+
+        ausgabe(TYPE_DBG, "Alle Node beendet", self.__debugmode)
+        time.sleep(3)
+
+        ausgabe(TYPE_DBG, "q-Thread Status: {}".format(self.__thQ.is_alive()), self.__debugmode)
+
+        self.__thQ=None
 
 
 if __name__=="__main__":
 
-    myServer=ioserver(raceid=1, debug=1)
+    try:
+
+        myServer = ioserver(raceid=1, debug=1)
+
+        print "Main beendet"
+        os._exit(1)
+
+    except KeyboardInterrupt:
+        myServer.beenden()
+        print "Abbruch mit STRG+C"
+
+
