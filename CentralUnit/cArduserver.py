@@ -158,8 +158,6 @@ class ioserver(object):
 
                 self.__nodes[channel.slot]=SlaveNode(cid, self.__q,self.__debugmode)
 
-
-
         else:
             returnStatus=False
 
@@ -170,6 +168,8 @@ class ioserver(object):
 
         while self.__active:
             newcommand=self.__q.get()
+            ausgabe(TYPE_DBG, "Neue Meldung von {}".format(newcommand.slot), self.__debugmode)
+
             self.__parseCommand2(newcommand)
             self.__q.task_done()
 
@@ -496,8 +496,12 @@ class ioserver(object):
 
         returnStatus=True
 
-        self.__serial = serial.Serial(self.__port, 9600, timeout=20)
-        self.__listener()
+        while self.__active:
+            returnStatus=False
+            time.sleep(0.0)
+
+        #self.__serial = serial.Serial(self.__port, 9600, timeout=20)
+        #self.__listener()
 
 
         return returnStatus
