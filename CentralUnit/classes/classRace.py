@@ -1,6 +1,7 @@
 
 from modules.mDb import db
 from classes.classPilot import cPilot
+from config.cfg_db import tables as sqltbl
 import time
 
 class cChannel(object):
@@ -21,7 +22,7 @@ class cChannel(object):
     def __getData(self):
 
         mydb = db()
-        sql = "SELECT * FROM tchannels WHERE CID={} ".format(self.__cid)
+        sql = "SELECT * FROM {0} WHERE CID={1} ".format(sqltbl["channels"], self.__cid)
         sql = sql + "AND status=-1;"
         result = mydb.query(sql)
 
@@ -41,13 +42,13 @@ class cChannel(object):
 
 
         mydb = db()
-        sql = "SELECT p.callsign, w.status, r.UID FROM twaitlist w "
-        sql = sql + "INNER JOIN tattendance a "
+        sql = "SELECT p.callsign, w.status, r.UID FROM {} w ".format(sqltbl["waitlist"])
+        sql = sql + "INNER JOIN {} a ".format(sqltbl["attendance"])
         sql = sql + "ON a.WID=w.WID "
-        sql = sql + "INNER JOIN tpilots p "
+        sql = sql + "INNER JOIN tpilots p ".format(sqltbl["pilots"])
         sql = sql + "ON a.PID=p.PID "
 
-        sql = sql + "LEFT JOIN trfid r "
+        sql = sql + "LEFT JOIN {} r ".format(sqltbl["rfid"])
         sql = sql + "ON r.PID=p.PID "
 
         sql = sql + "WHERE w.CID={} AND w.rid={} ".format(self.__cid, rid)
@@ -109,7 +110,7 @@ class cRace(object):
     def __getData(self):
 
         mydb=db()
-        sql="SELECT * FROM traces WHERE RID={} ".format(self.__rid)
+        sql="SELECT * FROM {0} WHERE RID={1} ".format(sqltbl["races"], self.__rid)
         sql = sql + "AND status=-1;"
 
         result=mydb.query(sql)
@@ -120,7 +121,7 @@ class cRace(object):
             self.__racedate=row["race_date"]
 
         #Delay zwischen den Heats (primaer fuers testen,)
-        sql = "SELECT * FROM traceoptions WHERE RID={} AND option_name='startdelay' ".format(self.__rid)
+        sql = "SELECT * FROM {0} WHERE RID={1} AND option_name='startdelay' ".format(sqltbl["raceoptions"], self.__rid)
         sql = sql + "AND status=-1 "
         sql = sql + "ORDER BY option_value;"
         result = mydb.query(sql)
@@ -137,7 +138,7 @@ class cRace(object):
         channels={}
 
         mydb = db()
-        sql = "SELECT * FROM traceoptions WHERE RID={} AND option_name='channel' ".format(self.__rid)
+        sql = "SELECT * FROM {0} WHERE RID={1} AND option_name='channel' ".format(sqltbl["raceoptions"], self.__rid)
         sql = sql + "AND status=-1 "
         sql = sql + "ORDER BY option_value;"
         result = mydb.query(sql)
@@ -153,7 +154,7 @@ class cRace(object):
         attendies={}
 
         mydb = db()
-        sql = "SELECT * FROM tattendance WHERE RID={} ".format(self.__rid)
+        sql = "SELECT * FROM {0} WHERE RID={1} ".format(sqltbl["attendance"], self.__rid)
         sql = sql + "AND status=-1;"
 
         result = mydb.query(sql)
@@ -180,14 +181,14 @@ class cRace(object):
         returnStatus=False
 
         mydb = db()
-        sql = "SELECT * FROM trfid WHERE "
+        sql = "SELECT * FROM {} WHERE ".format(sqltbl["rfid"])
         sql = sql + "UID='{}' ".format(cardId)
         sql = sql + "AND status <> 0 "
         result=mydb.query(sql)
 
         if len(result)==0:
 
-            sql = "INSERT INTO trfid SET "
+            sql = "INSERT INTO {} SET ".format(sqltbl["rfid"])
             sql = sql + "UID='{}', ".format(cardId)
             sql = sql + "PID=0, "
             sql = sql + "status=0 "
@@ -264,10 +265,10 @@ class cRace(object):
     def reset(self):
 
         mydb = db()
-        sql = "DELETE FROM twaitlist WHERE RID={} ".format(self.__rid)
+        sql = "DELETE FROM {0} WHERE RID={1} ".format(sqltbl["waitlist"], self.__rid)
         mydb.query(sql)
 
-        sql = "UPDATE tattendance SET WID=0 WHERE RID={} ".format(self.__rid)
+        sql = "UPDATE {0} SET WID=0 WHERE RID={1} ".format(sqltbl["attendance"], self.__rid)
         mydb.query(sql)
 
     @property
