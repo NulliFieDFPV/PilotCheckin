@@ -5,6 +5,7 @@ Mit dieser Klasse lässt sich die aktuelle Warteschlange eines Races darstellen.
 Es wird zusätzlich der Kanal mit der kürzesten Warteschlange angezeigt
 
 
+Ausgabe:
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 +++++ Best Channel: RB2 ++++++++++++++++++++++++++++++++++++++++++++++++++++
