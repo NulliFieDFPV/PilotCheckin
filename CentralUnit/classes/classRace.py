@@ -66,6 +66,7 @@ class cChannel(object):
 
         return waitlist
 
+
     @property
     def channel(self):
         return self.__channel
@@ -173,6 +174,30 @@ class cRace(object):
         return attendies
 
 
+    def addCard(self, cardId):
+
+
+        returnStatus=False
+
+        mydb = db()
+        sql = "SELECT * FROM trfid WHERE "
+        sql = sql + "UID='{}' ".format(cardId)
+        sql = sql + "AND status <> 0 "
+        result=mydb.query(sql)
+
+        if len(result)==0:
+
+            sql = "INSERT INTO trfid SET "
+            sql = sql + "UID='{}', ".format(cardId)
+            sql = sql + "PID=0, "
+            sql = sql + "status=0 "
+            mydb.query(sql)
+
+            returnStatus=True
+
+        return returnStatus
+
+
     def attendies(self, refresh=False):
         # TODO: Irgendwie kommt der checked-in-status in der funktion nicht an
         if refresh:
@@ -263,8 +288,8 @@ class cRace(object):
     def getPilotByCard(self, uid):
 
         pilot=None
-
-        for aid, pilot in self.__attendies.items():
+        attendies=self.attendies(True)
+        for aid, pilot in attendies.items():
             if pilot.uid==uid:
                 break
 
