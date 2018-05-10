@@ -12,8 +12,11 @@ class cChannel(object):
         self.__band = 0
         self.__status = 0
         self.__slot="0000"
+        self.__port =""
+        self.__typ=""
 
         self.__getData()
+
 
     def __getData(self):
 
@@ -28,6 +31,9 @@ class cChannel(object):
             self.__band=row["band"]
             self.__status=row["status"]
             self.__slot=row["slot"]
+            self.__port=row["port"]
+            self.__typ=row["typ"]
+
 
     def waitList(self, rid):
 
@@ -76,8 +82,13 @@ class cChannel(object):
     def channelname(self):
         return self.__channelname
 
+    @property
+    def port(self):
+        return self.__port
 
-
+    @property
+    def typ(self):
+        return self.__typ
 
 class cRace(object):
 

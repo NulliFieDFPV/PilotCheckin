@@ -4,91 +4,109 @@ import serial
 from modules.mDb import db
 import datetime
 
+from classes.classRace import cChannel
 from classes.classRace import cRace
+from classes.cHelper import cCommando
+from classes.cHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV
+from classes.cHelper import COM_INFO_RSN, COM_INFO_SLT
+from classes.cHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
+
+from classes.cHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP
+from classes.cHelper import ausgabe
+import Queue
+
+import threading
+import signal
+import os
 
 
-class cCommando(object):
 
-    def __init__(self, commandos):
+class SlaveNode(cChannel):
 
-        self.prefix=""
+    def __init__(self, cid,queue, debugmode=False):
 
-        self.commando=""
-        self.slot=""
-        self.slotBefore = ""
-        self.cardId=""
-        self.reason=""
+        cChannel.__init__(self, cid)
+        self.__active=True
+        self.__con =None
+        self.__debugmode=debugmode
+        self.__queue=queue
+        self.__msg_temp=""
 
-        self.__lCommandos = commandos
+        if self.port !="":
+            self.__con= serial.Serial(self.port, 9600, timeout=20)
 
-    def __verarbeiteListe(self):
+        self.__thListen=threading.Thread(target=self.__listenToNode,args=())
+        self.__thListen.start()
 
-        for cmd in self.__lCommandos:
 
-            if cmd == "CMD":
-                self.prefix=cmd
-                continue
+    def __listenToNode(self):
 
-            if cmd == "ASK":
-                self.prefix = cmd
-                continue
+        while self.__active==True:
+            message =""
 
-            cmdTmp = cmd[:3]
+            if not self.__con is None:
+                message = self.__con.readline().strip()
 
-            if cmdTmp == "RMV":
-                self.cardId = cmd[3:]
-                self.commando = cmdTmp
+            if len(message)>0:
+                #print(message)
+                message=self.__msg_temp + message
+                #print message
 
-            elif cmdTmp == "WLK":
-                self.slotBefore = cmd[3:]
-                self.commando = cmdTmp
-                # print "remove", cardId
+                if message[:3]=="CMD" or message[:3]=="ASK":
 
-            elif cmdTmp == "ADD":
-                self.cardId = cmd[3:]
-                self.commando = cmdTmp
-                # print "add", cardId
+                    if message[-1:]==";":
+                        #Hier jetzt irgenwat machen
+                        newcommand=self.__parseCommand(message.replace(";", ""))
+                        self.__queue.put(newcommand)
 
-            elif cmdTmp == "EXS":
-                self.cardId = cmd[3:]
-                self.commando = cmdTmp
+                        self.__msg_temp=""
+                    else:
+                        self.__msg_temp =message
 
-            elif cmdTmp == "RSN":
-                self.reason = cmd[3:]
+                elif message[:3]=="RSP":
+                    #sollte eigentlich nicht vorkommen
+                    ausgabe(TYPE_RSP, message, self.__debugmode)
 
-            elif cmdTmp == "CHK":
-                self.cardId = cmd[3:]
-                self.commando = cmdTmp
-                # print "check in", cardId
 
-            elif cmdTmp == "SLT":
-                self.slot = cmd[3:]
-                # print "slot", cardSlot
+                else:
+                    ausgabe( TYPE_DBG, message, self.__debugmode)
 
-    @property
-    def isValid(self):
+            time.sleep(0.01)
 
-        if self.commando == "RMV" or self.commando == "ADD" or self.commando == "CHK":
-            if self.cardId <> "" and self.slot <> "":
-                return True
 
-        elif self.commando == "EXS":
-            return True
+    def sendToNode(self, message, nodeId=None):
 
-        elif self.commando =="WLK":
-            return True
+        returnStatus = True
 
-        return False
+        if not nodeId is None:
+            pass
 
+        if not self.__con is None:
+
+            message=message+";"
+
+            self.__con.write(message)
+
+        else:
+            ausgabe(TYPE_ERR, "Slot {} nicht verfuegbar".format(self.slot))
+
+            returnStatus=False
+
+        return returnStatus
+
+
+    def __parseCommand(self, message):
+
+        # Message komplett
+        #print message
+        lstCmd = message.split(":")
+
+        newcommand = cCommando(lstCmd)
+
+        return newcommand
 
 
 class ioserver(object):
-
-    TYPE_OUT="[OUT]"
-    TYPE_CMD="[CMD]"
-    TYPE_RSP="[RSP]"
-    TYPE_DBG="[DBG]"
-    TYPE_ERR="[ERR]"
 
 
     def __init__(self,  **kwargs):
@@ -107,14 +125,16 @@ class ioserver(object):
         self.__msg_temp = ""
         self.__lastCardId=""
         self.__lastCards={}
+        self.__nodes={}
+        self.__nodeQueues={}
         #setup
-
+        self.__active = True
+        self.__port = '/dev/ttyUSB0'
         self.__raceid=raceid
 
         self.__setupRace(raceid)
 
-        self.__active = True
-        self.__port = '/dev/ttyUSB0'
+
 
         self.__starten()
 
@@ -126,20 +146,72 @@ class ioserver(object):
 
         if raceid>0:
             self.__race = cRace(raceid)
+
+            channels=self.__race.channels()
+            self.__q = Queue.Queue()
+
+            self.__thQ=threading.Thread(target=self.__readQueue, args=())
+            self.__thQ.start()
+
+            for cid, channel in channels.items():
+                #Dem Modul den slot zuweisen
+
+                self.__nodes[channel.slot]=SlaveNode(cid, self.__q,self.__debugmode)
+
+
+
         else:
             returnStatus=False
 
         return returnStatus
 
 
+    def __readQueue(self):
+
+        while self.__active:
+            newcommand=self.__q.get()
+            self.__parseCommand2(newcommand)
+            self.__q.task_done()
+
+
+    def __parseCommand2(self, newcommand):
+
+        returnStatus=True
+
+        if self.__raceid>0:
+
+            if newcommand.isValid:
+
+                ausgabe(TYPE_CMD, newcommand.commando + " " + newcommand.cardId + " " + newcommand.slot, self.__debugmode)
+
+                if newcommand.commando == COM_COMMAND_ADD:
+                    self.__command_ADD(newcommand.cardId, newcommand.slot)
+
+                elif newcommand.commando == COM_COMMAND_RMV:
+                    self.__command_RMV(newcommand.cardId, newcommand.slot)
+
+                elif newcommand.commando == COM_COMMAND_CHK:
+                    self.__command_CHK(newcommand.cardId, newcommand.slot)
+
+                elif newcommand.commando == COM_COMMAND_WLK:
+                    self.__command_WLK("0001")
+
+                elif newcommand.commando == COM_COMMAND_EXS:
+                    self.__command_EXS(newcommand.cardId, newcommand.reason, newcommand.slot)
+
+
+        else:
+            ausgabe(TYPE_ERR,"Kein Race gewaehlt", self.__debugmode)
+
+
+        return returnStatus
+
+
+
     def __parseCommand(self, message):
 
         # Message komplett
-        cardId = ""
-        cardSlot = ""
-        cardSlotVorher=""
-        cardCommand =""
-        cardReason=""
+        #print message
         returnStatus = True
         lstCmd = message.split(":")
 
@@ -148,56 +220,35 @@ class ioserver(object):
 
         if self.__raceid>0:
 
-            if cCommando.isValid:
+            if newcommand.isValid:
 
-                self.__ausgabe(self.TYPE_CMD, cardCommand + " " + str(cardId) + " " + cardSlot)
+                ausgabe(TYPE_CMD, newcommand.commando + " " + newcommand.cardId + " " + newcommand.slot, self.__debugmode)
 
-                if cardCommand == "ADD":
-                    self.__command_ADD(cardId, cardSlot)
+                if newcommand.commando == COM_COMMAND_ADD:
+                    self.__command_ADD(newcommand.cardId, newcommand.slot)
 
-                elif cardCommand == "RMV":
-                    self.__command_RMV(cardId, cardSlot)
+                elif newcommand.commando == COM_COMMAND_RMV:
+                    self.__command_RMV(newcommand.cardId, newcommand.slot)
 
-                elif cardCommand == "CHK":
-                    self.__command_CHK(cardId, cardSlot)
+                elif newcommand.commando == COM_COMMAND_CHK:
+                    self.__command_CHK(newcommand.cardId, newcommand.slot)
 
-                elif cardCommand == "WLK":
+                elif newcommand.commando == COM_COMMAND_WLK:
                     self.__command_WLK("0001")
 
-                elif cardCommand == "EXS":
-                    self.__command_EXS(cardId, cardReason, cardSlot)
+                elif newcommand.commando == COM_COMMAND_EXS:
+                    self.__command_EXS(newcommand.cardId, newcommand.reason, newcommand.slot)
 
 
-
-
-            if cardCommand=="RMV" or cardCommand=="ADD" or cardCommand=="CHK":
-                if cardId <> "" and cardSlot <> "":
-                    # job ausfuehren
-                    self.__ausgabe( self.TYPE_CMD, cardCommand + " " + str(cardId) + " " + cardSlot)
-
-                    if cardCommand=="ADD":
-                        self.__command_ADD(cardId, cardSlot)
-                    elif cardCommand=="RMV":
-                        self.__command_RMV(cardId, cardSlot)
-                    elif cardCommand=="CHK":
-                        self.__command_CHK(cardId, cardSlot)
-
-
-            elif cardCommand=="EXS":
-                self.__command_EXS(cardId, cardReason, cardSlot)
-
-
-            elif cardCommand=="WLK":
-
-                #print cardCommand, cardSlotVorher
-                self.__command_WLK("0001")
         else:
-            self.__ausgabe(self.TYPE_ERR,"Kein Race gewaehlt")
+            ausgabe(TYPE_ERR,"Kein Race gewaehlt", self.__debugmode)
 
 
         return returnStatus
 
-    def __command_EXS(self, cardId, cardReason, port):
+
+
+    def __command_EXS(self, cardId, cardReason, cardSlot):
 
         returnStatus = True
 
@@ -209,35 +260,35 @@ class ioserver(object):
             cardStatus="failed"
 
 
-        response = "RSP:EXS{}:SLT{}:STA{}:RSN{}:".format(cardId, port, cardStatus, cardReason)
+        response = "RSP:EXS{}:SLT{}:STA{}:RSN{}:".format(cardId, cardSlot, cardStatus, cardReason)
 
-        self.__sendToNode(response)
+        self.__sendToNode(response, cardSlot)
 
         return returnStatus
 
 
-    def __command_WLK(self, port):
+    def __command_WLK(self, cardSlot):
 
         returnStatus = True
 
-        response = "RSP:SETslot:SLT{}:STAok:".format(port)
+        response = "RSP:SETslot:SLT{}:STAok:".format(cardSlot)
 
-        self.__sendToNode(response)
+        self.__sendToNode(response, cardSlot)
 
         return returnStatus
 
 
-    def __command_RMV(self, cardId, port):
+    def __command_RMV(self, cardId, cardSlot):
 
         returnStatus = True
-        response = "RSP:RMV{}:SLT{}:STAok:".format(cardId, port)
+        response = "RSP:RMV{}:SLT{}:STAok:".format(cardId, cardSlot)
 
-        self.__sendToNode(response)
+        self.__sendToNode(response, cardSlot)
 
         return returnStatus
 
 
-    def __command_ADD(self, cardId, port):
+    def __command_ADD(self, cardId, cardSlot):
 
         pilotId=self.__findCardId(cardId)
         chkStatus="ok"
@@ -254,9 +305,9 @@ class ioserver(object):
             chkStatus="failed"
             returnStatus =False
 
-        response = "RSP:ADD{}:SLT{}:STA{}:".format(cardId, port, chkStatus)
+        response = "RSP:ADD{}:SLT{}:STA{}:".format(cardId, cardSlot, chkStatus)
 
-        self.__sendToNode(response)
+        self.__sendToNode(response, cardSlot)
 
         return returnStatus
 
@@ -285,7 +336,7 @@ class ioserver(object):
 
                 response = "RSP:RST{}:SLT{}:STA{}:".format(cardId, cardSlot, cardStatus)
 
-                self.__sendToNode(response)
+                self.__sendToNode(response, cardSlot)
 
             channelId= self.__getCheckIn(cardId)
 
@@ -315,24 +366,29 @@ class ioserver(object):
 
         response="RSP:CHK{}:SLT{}:STA{}:".format(cardId, cardSlot, chkStatus)
 
-        self.__sendToNode(response)
+        self.__sendToNode(response, cardSlot)
 
         return returnStatus
 
 
-    def __sendToNode(self, message, nodeId=None):
+    def __sendToNode(self, message, slot, nodeId=None):
 
         returnStatus = True
 
         if not nodeId is None:
-            self.__ausgabe(self.TYPE_DBG , str(nodeId))
+            ausgabe(TYPE_DBG , str(nodeId), self.__debugmode)
 
         message=message+";"
 
         #Nodeid stellt die i2c-adresse dar
-        self.__ausgabe( self.TYPE_OUT, message)
+        ausgabe( TYPE_OUT, message, self.__debugmode)
 
-        self.__serial.write(message)
+        if self.__nodes.has_key(slot):
+            node=self.__nodes[slot]
+            node.sendToNode(message, nodeId)
+        else:
+            returnStatus=False
+
 
         return returnStatus
 
@@ -447,21 +503,6 @@ class ioserver(object):
         return returnStatus
 
 
-    def __ausgabe(self, type, message):
-
-        returnStatus=True
-
-        datum=datetime.datetime.now()
-
-        msg= "[{}] {} {}".format(datum.strftime("%Y-%m-%d %H:%M:%S"), type, message)
-        if self.__debugmode==False:
-            if type==self.TYPE_CMD or type==self.TYPE_ERR  or type==self.TYPE_RSP  or type==self.TYPE_OUT:
-                print(msg)
-
-        else:
-            print(msg)
-
-        return returnStatus
 
 
 
@@ -471,8 +512,8 @@ class ioserver(object):
 
         while self.__active:
 
-            message = self.__serial .readline().strip()
-
+            #message = self.__serial .readline().strip()
+            message=""
             if len(message)>0:
                 message=self.__msg_temp + message
                 #print message
@@ -487,15 +528,15 @@ class ioserver(object):
                         self.__msg_temp =message
 
                 elif message[:3]=="RSP":
-                    self.__ausgabe(self.TYPE_RSP, message)
+                    ausgabe(TYPE_RSP, message, self.__debugmode)
 
 
                 else:
-                    self.__ausgabe( self.TYPE_DBG, message)
+                    ausgabe( TYPE_DBG, message, self.__debugmode)
 
             #auf port lauschen, bis was reinkommt
             #print "lauschen"
-            time.sleep(0.01)
+            time.sleep(10.01)
 
         return returnStatus
 
