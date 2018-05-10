@@ -1,6 +1,7 @@
 
 from modules.mDb import db
 from classes.classPilot import cPilot
+import time
 
 class cChannel(object):
 
@@ -34,11 +35,14 @@ class cChannel(object):
 
 
         mydb = db()
-        sql = "SELECT p.callsign, w.status FROM twaitlist w "
+        sql = "SELECT p.callsign, w.status, r.UID FROM twaitlist w "
         sql = sql + "INNER JOIN tattendance a "
         sql = sql + "ON a.WID=w.WID "
         sql = sql + "INNER JOIN tpilots p "
         sql = sql + "ON a.PID=p.PID "
+
+        sql = sql + "LEFT JOIN trfid r "
+        sql = sql + "ON r.PID=p.PID "
 
         sql = sql + "WHERE w.CID={} AND w.rid={} ".format(self.__cid, rid)
         sql = sql + "AND w.status IN (-1,1) "
@@ -47,7 +51,7 @@ class cChannel(object):
         result = mydb.query(sql)
 
         for row in result:
-            infotext=row["callsign"]
+            infotext=row["callsign"] + " ("+ row["UID"] + ")"
 
             if row["status"]==1:
                 infotext =infotext + "*"
@@ -82,6 +86,8 @@ class cRace(object):
 
         self.__rid=rid
         self.__racedate=None
+        self.__startDelay =0
+
         self.__attendies={}
         self.__channels={}
 
@@ -100,6 +106,15 @@ class cRace(object):
             self.__rid= row["RID"]
             self.__racename= row["race_name"]
             self.__racedate=row["race_date"]
+
+        #Delay zwischen den Heats (primaer fuers testen,)
+        sql = "SELECT * FROM traceoptions WHERE RID={} AND option_name='startdelay' ".format(self.__rid)
+        sql = sql + "AND status=-1 "
+        sql = sql + "ORDER BY option_value;"
+        result = mydb.query(sql)
+
+        for row in result:
+            self.__startDelay=float(row["option_value"])
 
         self.__attendies=self.__getAttendies()
         self.__channels=self.__getChannels()
@@ -155,6 +170,53 @@ class cRace(object):
         return self.__attendies
 
 
+    def starteHeat(self):
+
+        anzahl = 0
+
+        attendies=self.attendies(True)
+
+        # Fuer jeden Channel mal die LAge checken und einen piloten starten
+        for cid, channel in self.__channels.items():
+
+            for aid, pilot in attendies.items():
+                if pilot.checkedin():
+                    if pilot.cid()==cid:
+                        if pilot.waitposition() == 1:
+                            if not pilot.inflight:
+                                anzahl = anzahl + 1
+                                print pilot.callsign, "start", self.__channels[pilot.cid()].channelname
+
+                                pilot.startHeat()
+                                if self.__startDelay>0:
+                                        time.sleep(self.__startDelay)
+                            else:
+                                #TODO An diesem Channel kann jetzt ein anderer starten, und zwar der pilot mit waitposition=2 und dem gleichen channel wie dieser pilot
+                                pilot.stopHeat()
+
+        return anzahl
+
+
+    def stoppeHeat(self):
+
+        anzahl=0
+
+        attendies=self.attendies(True)
+
+        for aid, pilot in attendies.items():
+            if pilot.checkedin():
+                if pilot.waitposition() == 1:
+                    if pilot.inflight:
+                        anzahl=anzahl+1
+                        print pilot.callsign, "stop", self.__channels[pilot.cid()].channelname
+
+                        pilot.stopHeat()
+                        if self.__startDelay>0:
+                                time.sleep(self.__startDelay)
+
+        return anzahl
+
+
     def channels(self, refresh=False):
 
         if refresh:
@@ -185,6 +247,29 @@ class cRace(object):
                 waitlength=i
 
         return channelid
+
+
+    def getPilotByCard(self, uid):
+
+        pilot=None
+
+        for aid, pilot in self.__attendies.items():
+            if pilot.uid==uid:
+                break
+
+        return pilot
+
+
+    def getChannelId(self, slot):
+
+        channelId=0
+
+        for cid, channel in self.__channels.items():
+            if channel.slot==slot:
+                channelId=cid
+                break
+
+        return channelId
 
 
     @property

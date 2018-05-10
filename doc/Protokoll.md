@@ -59,6 +59,14 @@ Funktionen:
   CHK
     Werte:
       UID der Karte
+  EXS
+    Werte:
+      UID der Karte
+
+Sonstiges:
+  RSN
+    Werte:
+      delete, add
       
 Abschluss:
   ;

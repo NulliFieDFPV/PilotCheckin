@@ -6,23 +6,130 @@ import datetime
 
 from classes.classRace import cRace
 
+
+class cCommando(object):
+
+    def __init__(self, commandos):
+
+        self.prefix=""
+
+        self.commando=""
+        self.slot=""
+        self.slotBefore = ""
+        self.cardId=""
+        self.reason=""
+
+        self.__lCommandos = commandos
+
+    def __verarbeiteListe(self):
+
+        for cmd in self.__lCommandos:
+
+            if cmd == "CMD":
+                self.prefix=cmd
+                continue
+
+            if cmd == "ASK":
+                self.prefix = cmd
+                continue
+
+            cmdTmp = cmd[:3]
+
+            if cmdTmp == "RMV":
+                self.cardId = cmd[3:]
+                self.commando = cmdTmp
+
+            elif cmdTmp == "WLK":
+                self.slotBefore = cmd[3:]
+                self.commando = cmdTmp
+                # print "remove", cardId
+
+            elif cmdTmp == "ADD":
+                self.cardId = cmd[3:]
+                self.commando = cmdTmp
+                # print "add", cardId
+
+            elif cmdTmp == "EXS":
+                self.cardId = cmd[3:]
+                self.commando = cmdTmp
+
+            elif cmdTmp == "RSN":
+                self.reason = cmd[3:]
+
+            elif cmdTmp == "CHK":
+                self.cardId = cmd[3:]
+                self.commando = cmdTmp
+                # print "check in", cardId
+
+            elif cmdTmp == "SLT":
+                self.slot = cmd[3:]
+                # print "slot", cardSlot
+
+    @property
+    def isValid(self):
+
+        if self.commando == "RMV" or self.commando == "ADD" or self.commando == "CHK":
+            if self.cardId <> "" and self.slot <> "":
+                return True
+
+        elif self.commando == "EXS":
+            return True
+
+        elif self.commando =="WLK":
+            return True
+
+        return False
+
+
+
 class ioserver(object):
 
-    def __init__(self, raceid=1):
+    TYPE_OUT="[OUT]"
+    TYPE_CMD="[CMD]"
+    TYPE_RSP="[RSP]"
+    TYPE_DBG="[DBG]"
+    TYPE_ERR="[ERR]"
 
+
+    def __init__(self,  **kwargs):
+
+        debug=False
+        raceid=0
+
+        if kwargs.has_key("raceid"):
+            raceid=kwargs.get("raceid")
+
+        if kwargs.has_key("debug"):
+            debug =(kwargs.get("debug")==1)
 
         self.__serial=None
+        self.__debugmode=debug
         self.__msg_temp = ""
         self.__lastCardId=""
         self.__lastCards={}
         #setup
+
         self.__raceid=raceid
-        self.__race=cRace(raceid)
+
+        self.__setupRace(raceid)
 
         self.__active = True
         self.__port = '/dev/ttyUSB0'
 
         self.__starten()
+
+
+    def __setupRace(self, raceid):
+
+        returnStatus = True
+        self.__raceid = raceid
+
+        if raceid>0:
+            self.__race = cRace(raceid)
+        else:
+            returnStatus=False
+
+        return returnStatus
 
 
     def __parseCommand(self, message):
@@ -32,79 +139,109 @@ class ioserver(object):
         cardSlot = ""
         cardSlotVorher=""
         cardCommand =""
-
+        cardReason=""
+        returnStatus = True
         lstCmd = message.split(":")
 
-        for cmd in lstCmd:
-
-            if cmd == "CMD":
-                continue
-
-            if cmd =="ASK":
-                continue
-
-            cmdTmp = cmd[:3]
-
-            if cmdTmp == "RMV":
-                cardId = cmd[3:]
-                cardCommand = cmdTmp
-
-            elif cmdTmp == "WLK":
-                cardSlotVorher = cmd[3:]
-                cardCommand = cmdTmp
-                #print "remove", cardId
-
-            elif cmdTmp == "ADD":
-                cardId = cmd[3:]
-                cardCommand = cmdTmp
-                #print "add", cardId
-
-            elif cmdTmp == "CHK":
-                cardId = cmd[3:]
-                cardCommand = cmdTmp
-                #print "check in", cardId
-
-            elif cmdTmp == "SLT":
-                cardSlot = cmd[3:]
-                #print "slot", cardSlot
+        newcommand = cCommando(lstCmd)
 
 
-        if cardCommand=="RMV" or cardCommand=="ADD" or cardCommand=="CHK":
-            if cardId <> "" and cardSlot <> "":
-                # job ausfuehren
-                print "[CMD]", cardCommand, cardId, cardSlot
-                if cardCommand=="ADD":
+        if self.__raceid>0:
+
+            if cCommando.isValid:
+
+                self.__ausgabe(self.TYPE_CMD, cardCommand + " " + str(cardId) + " " + cardSlot)
+
+                if cardCommand == "ADD":
                     self.__command_ADD(cardId, cardSlot)
-                elif cardCommand=="RMV":
+
+                elif cardCommand == "RMV":
                     self.__command_RMV(cardId, cardSlot)
-                elif cardCommand=="CHK":
+
+                elif cardCommand == "CHK":
                     self.__command_CHK(cardId, cardSlot)
 
-        elif cardCommand=="WLK":
+                elif cardCommand == "WLK":
+                    self.__command_WLK("0001")
 
-            #print cardCommand, cardSlotVorher
-            self.__command_WLK("0001")
+                elif cardCommand == "EXS":
+                    self.__command_EXS(cardId, cardReason, cardSlot)
+
+
+
+
+            if cardCommand=="RMV" or cardCommand=="ADD" or cardCommand=="CHK":
+                if cardId <> "" and cardSlot <> "":
+                    # job ausfuehren
+                    self.__ausgabe( self.TYPE_CMD, cardCommand + " " + str(cardId) + " " + cardSlot)
+
+                    if cardCommand=="ADD":
+                        self.__command_ADD(cardId, cardSlot)
+                    elif cardCommand=="RMV":
+                        self.__command_RMV(cardId, cardSlot)
+                    elif cardCommand=="CHK":
+                        self.__command_CHK(cardId, cardSlot)
+
+
+            elif cardCommand=="EXS":
+                self.__command_EXS(cardId, cardReason, cardSlot)
+
+
+            elif cardCommand=="WLK":
+
+                #print cardCommand, cardSlotVorher
+                self.__command_WLK("0001")
+        else:
+            self.__ausgabe(self.TYPE_ERR,"Kein Race gewaehlt")
+
+
+        return returnStatus
+
+    def __command_EXS(self, cardId, cardReason, port):
+
+        returnStatus = True
+
+        aid=self.__getAttendanceId(cardId)
+
+        if aid>0:
+            cardStatus = "ok"
+        else:
+            cardStatus="failed"
+
+
+        response = "RSP:EXS{}:SLT{}:STA{}:RSN{}:".format(cardId, port, cardStatus, cardReason)
+
+        self.__sendToNode(response)
+
+        return returnStatus
 
 
     def __command_WLK(self, port):
+
+        returnStatus = True
 
         response = "RSP:SETslot:SLT{}:STAok:".format(port)
 
         self.__sendToNode(response)
 
+        return returnStatus
 
 
     def __command_RMV(self, cardId, port):
 
+        returnStatus = True
         response = "RSP:RMV{}:SLT{}:STAok:".format(cardId, port)
 
         self.__sendToNode(response)
+
+        return returnStatus
 
 
     def __command_ADD(self, cardId, port):
 
         pilotId=self.__findCardId(cardId)
         chkStatus="ok"
+        returnStatus=True
 
         if pilotId==0:
             mydb = db()
@@ -115,17 +252,20 @@ class ioserver(object):
 
         else:
             chkStatus="failed"
+            returnStatus =False
 
         response = "RSP:ADD{}:SLT{}:STA{}:".format(cardId, port, chkStatus)
 
         self.__sendToNode(response)
+
+        return returnStatus
 
 
     def __command_CHK(self, cardId, cardSlot):
 
         pilotId= self.__findCardId(cardId)
         chkStatus="failed"
-
+        returnStatus = False
 
         if pilotId>0:
             #Pilot existiert schon mal
@@ -138,8 +278,12 @@ class ioserver(object):
                 lastCardId =self.__lastCards[cardSlot]
 
             if lastCardId==cardId:
-                self.__resetCheckIn(self.__getAttendanceId(cardId))
-                response = "RSP:RST{}:SLT{}:STAok:".format(cardId, cardSlot)
+                if self.__resetCheckIn(cardId):
+                    cardStatus = "ok"
+                else:
+                    cardStatus="failed"
+
+                response = "RSP:RST{}:SLT{}:STA{}:".format(cardId, cardSlot, cardStatus)
 
                 self.__sendToNode(response)
 
@@ -173,19 +317,24 @@ class ioserver(object):
 
         self.__sendToNode(response)
 
+        return returnStatus
 
 
     def __sendToNode(self, message, nodeId=None):
 
+        returnStatus = True
+
         if not nodeId is None:
-            print nodeId
+            self.__ausgabe(self.TYPE_DBG , str(nodeId))
+
         message=message+";"
 
         #Nodeid stellt die i2c-adresse dar
-        print "[OUT]", message
+        self.__ausgabe( self.TYPE_OUT, message)
 
         self.__serial.write(message)
 
+        return returnStatus
 
 
     def __getAttendanceId(self, cardId):
@@ -202,72 +351,46 @@ class ioserver(object):
 
         return attId
 
-        mydb = db()
-        sql = "SELECT * FROM tattendance a "
-        sql = sql + "WHERE RID={} AND PID={} ".format(self.__raceid, pilotId)
 
-        result = mydb.query(sql)
+    def __resetCheckIn(self, cardId):
 
-        for row in result:
-            attId = row["AID"]
+        attendies= self.__race.attendies(True)
+        returnStatus = True
 
-        return attId
+        for aid, pilot in attendies.items():
+            if pilot.uid==cardId:
+                if pilot.inflight:
+                    returnStatus= False
+                else:
+                    pilot.resetCheckIn()
+
+                break
 
 
-    def __resetCheckIn(self, attendieid):
-
-        mydb = db()
-        sql = "UPDATE twaitlist SET "
-        sql = sql + "status=0 "
-        sql = sql + "WHERE AID={}".format(attendieid)
-        mydb.query(sql)
-
-        sql = "UPDATE tattendance SET "
-        sql = sql + "WID=0 "
-        sql = sql + "WHERE AID={} ".format(attendieid)
-        mydb.query(sql)
+        return returnStatus
 
 
     def __getChannelId(self, slot):
 
-        channelId = 0
-
-        channels= self.__race.channels()
-
-        for cid, channel in channels.items():
-            if channel.slot==slot:
-                channelId=cid
-                break
+        channelId = self.__race.getChannelId(slot)
 
         return channelId
 
 
     def __setCheckIn(self, cardId, cardSlot):
 
-        waitid = 0
-
-        attendieid=self.__getAttendanceId(cardId)
-        if attendieid==0:
-            return -1
+        waitid = -2
 
         cid=self.__getChannelId(cardSlot)
         if cid==0:
-            return -2
+            return waitid
 
-        self.__resetCheckIn(attendieid)
+        pilot= self.__race.getPilotByCard(cardId)
 
-        mydb = db()
-        sql = "INSERT INTO twaitlist SET "
-        sql = sql + "AID={}, RID={}, CID={}, wait_date='{}', wait_time='{}', ".format(attendieid, self.__raceid, cid, datetime.datetime.now().strftime("%Y-%m-%d"), datetime.datetime.now().strftime("%H:%M:%S"))
-        sql = sql + "status=-1"
+        pilot.resetCheckIn()
 
-        waitid=mydb.query(sql)
+        waitid = pilot.setCheckIn(cid)
 
-        sql = "UPDATE tattendance SET "
-        sql = sql + "WID={} ".format(waitid)
-        sql = sql + "WHERE AID={} ".format(attendieid)
-
-        mydb.query(sql)
 
         return waitid
 
@@ -315,10 +438,36 @@ class ioserver(object):
 
     def __starten(self):
 
+        returnStatus=True
+
         self.__serial = serial.Serial(self.__port, 9600, timeout=20)
         self.__listener()
 
+
+        return returnStatus
+
+
+    def __ausgabe(self, type, message):
+
+        returnStatus=True
+
+        datum=datetime.datetime.now()
+
+        msg= "[{}] {} {}".format(datum.strftime("%Y-%m-%d %H:%M:%S"), type, message)
+        if self.__debugmode==False:
+            if type==self.TYPE_CMD or type==self.TYPE_ERR  or type==self.TYPE_RSP  or type==self.TYPE_OUT:
+                print(msg)
+
+        else:
+            print(msg)
+
+        return returnStatus
+
+
+
     def __listener(self):
+
+        returnStatus=True
 
         while self.__active:
 
@@ -338,16 +487,20 @@ class ioserver(object):
                         self.__msg_temp =message
 
                 elif message[:3]=="RSP":
-                    print "[RSP]", message
+                    self.__ausgabe(self.TYPE_RSP, message)
 
 
                 else:
-                    print "[DBG]", message
+                    self.__ausgabe( self.TYPE_DBG, message)
 
             #auf port lauschen, bis was reinkommt
             #print "lauschen"
             time.sleep(0.01)
 
+        return returnStatus
+
+
+
 if __name__=="__main__":
 
-    myServer=ioserver()
+    myServer=ioserver(raceid=1, debug=1)

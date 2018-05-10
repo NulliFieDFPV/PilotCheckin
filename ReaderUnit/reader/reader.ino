@@ -70,16 +70,7 @@ byte masterCard[4];   // Stores master card's ID read from EEPROM
 
 int intCount=0;
 char mybuffer[64];
-String msg="";
-String cmdTmp="";
-String cmdTmpValue="";
-String commando="";
-String commandoValue="";
-String cmdSlot="";
-String cmdStatus="";
-String cmdCard="";
 
-bool booResponse=false;
     
 // Create MFRC522 instance.
 constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
@@ -237,166 +228,9 @@ void loop () {
   
         if (String(myread)==";") {
           //verarbeiten  
-          booResponse=false;
-          cmdTmp="";
-          cmdTmpValue="";
-          commando="";
-          commandoValue="";
-          cmdSlot="";
-          cmdStatus="";
-          cmdCard="";
+
           
-          for (int i = 0; i < intCount; i++)
-          {
-              //Serial.println(mybuffer[i]);
-              //Serial.println(i);
-              //Serial.println(intCount);
-              if (mybuffer[i] == 58) {
-                //Serial.println("--------------------");
-                //Serial.println(msg);
-                //Serial.println("--------------------");
-  
-                if (msg=="RSP") {
-                  booResponse=true;  
-                }
-                else {
-                  
-                  cmdTmp=msg.substring(0,3);
-                  cmdTmpValue=msg.substring(3);
-  
-                  //Serial.println(cmdTmp);
-                  //Serial.println(cmdTmpValue);
-                  
-                  if (cmdTmp=="SET") {
-                    commando=cmdTmp;
-                    commandoValue=cmdTmpValue;
-                  }
-                  
-                  else if (cmdTmp=="SLT") {
-                    cmdSlot=cmdTmpValue;
-                  }
-  
-                  else if (cmdTmp=="CHK") {
-                    cmdCard=cmdTmpValue;
-                    commando=cmdTmp;
-                  }
-                  else if (cmdTmp=="RST") {
-                    cmdCard=cmdTmpValue;
-                    commando=cmdTmp;
-                  }
-                  else if (cmdTmp=="ADD") {
-                    cmdCard=cmdTmpValue;
-                    commando=cmdTmp;
-                  }
-                  else if (cmdTmp=="RMV") {
-                    cmdCard=cmdTmpValue;
-                    commando=cmdTmp;
-                  }
-                  else if (cmdTmp=="STA") {
-                    cmdStatus=cmdTmpValue;
-                  }
-                }
-                
-                msg="";
-              }
-              else {
-                msg = msg + String(mybuffer[i]);
-              }
-          }
-  
-          if (booResponse==true) {
-            Serial.println("--------------------");
-            Serial.println(commando);
-            Serial.println(cmdSlot);
-            Serial.println(cmdStatus);
-            Serial.println("--------------------");
-            
-            if (commando=="SET") {
-              if (commandoValue=="slot") {
-                setSlot(cmdSlot);
-              }
-            }
-            
-            else if (commando=="CHK") {
-              
-              if (cmdStatus=="ok") {
-                Serial.print(F("Pilot "));
-                Serial.print(cmdCard);
-                Serial.print(F(" Checked In At "));
-                Serial.println(cmdSlot);
-                
-                granted(300);
-             
-              }
-              else if (cmdStatus=="failed") {
-                Serial.print(F("Pilot "));
-                Serial.print(cmdCard);
-                Serial.print(F(" NOT Checked In At "));
-                Serial.println(cmdSlot);
-  
-                denied();
-                
-              }
-              else if (cmdStatus=="notreg") {
-                Serial.print(F("Pilot "));
-                Serial.print(cmdCard);
-                Serial.print(F(" NOT registered "));
-  
-                denied();
-   
-              }
-              else if (cmdStatus=="noatt") {
-                Serial.print(F("Pilot "));
-                Serial.print(cmdCard);
-                Serial.print(F(" NO attendance"));
-  
-                denied();
-  
-              }
-              else if (cmdStatus=="nochan") {
-                Serial.print(F("Pilot "));
-                Serial.print(cmdCard);
-                Serial.print(F(" WRONG slot"));
-  
-                denied();
-              }
-            }
-            
-            else if (commando=="ADD") {
-              if (cmdStatus=="ok") {
-                Serial.println(F("Succesfully added ID "));
-                Serial.print(cmdCard);
-                Serial.println(F(" record to List"));
-                successWrite();
-              }
-              else {
-                failedWrite();
-              }
-            }
-            
-            else if (commando=="RMV") {
-              if (cmdStatus=="ok") {
-                Serial.println(F("Succesfully disabled ID "));
-                Serial.print(cmdCard);
-                Serial.println(F(" record in List"));
-                successDelete();
-              }
-              else {
-                failedWrite();
-              }
-            }
-            else if (commando=="RST") {
-              if (cmdStatus=="ok") {
-                Serial.println(F("Succesfully resetted ID "));
-                Serial.print(cmdCard);
-                Serial.println(F(" record in List"));
-                successDelete();
-              }
-              else {
-                failedWrite();
-              }
-            }
-          }
+          parseCommand(mybuffer); 
           
           for (int i = 0; i < intCount; i++)
           {
@@ -425,7 +259,7 @@ void loop () {
       programMode = false;
       return;
     }
-    else {
+    /* {
       if ( findID(readCard) ) { // If scanned card is known delete it
         Serial.println(F("Removing Pilot's Card..."));
         deleteID(readCard);
@@ -433,12 +267,13 @@ void loop () {
         Serial.println(F("Scan a Pilot's Card to ADD or REMOVE to List"));
       }
       else {                    // If scanned card is not known add it
+      */
         Serial.println(F("Adding Pilot's Card..."));
         writeID(readCard);
         Serial.println(F("-----------------------------"));
         Serial.println(F("Scan a Pilot's Card to ADD or REMOVE to List"));
-      }
-    }
+      //}
+    //}
   }
   else {
     if ( isMaster(readCard)) {    // If scanned card's ID matches Master Card's ID - enter program mode
@@ -454,27 +289,206 @@ void loop () {
       //Check In in diesem Slot
       checkin=checkIn(readCard);
       
-      /*if ( checkin>-1 ) { // If not, see if the card is in the EEPROM
-        //TODO get Positon from Master
-        
-        Serial.print(F("Pilot Check In "));
-        for ( uint8_t i = 0; i < 4; i++) {  //
-          Serial.print(readCard[i], HEX);
-        }
-        Serial.print(F("! You are at Position "));
-        Serial.println(checkin);
-        granted(300);         // Open the door lock for 300 ms
-      }
-      else {      // If not, show that the ID was not valid
-        Serial.println(F("Unknown Card. You shall not pass"));
-        denied();
-      }
-      */
     }
   }
 }
 
+void parseCommand(String mybuffer) {
+  
+  String msg="";
+  String cmdTmp="";
+  String cmdTmpValue="";
+  String commando="";
+  String commandoValue="";
+  String cmdSlot="";
+  String cmdStatus="";
+  String cmdCard="";
+  String cmdReason="";
+  bool booResponse=false;
 
+  
+  for (int i = 0; i < intCount; i++)
+  {
+    //Serial.println(mybuffer[i]);
+    //Serial.println(i);
+    //Serial.println(intCount);
+    
+    if (mybuffer[i] == 58) {
+    if (msg=="RSP") {
+      booResponse=true;  
+    }
+    else {
+      
+      cmdTmp=msg.substring(0,3);
+      cmdTmpValue=msg.substring(3);
+  
+      //Serial.println(cmdTmp);
+      //Serial.println(cmdTmpValue);
+      
+      if (cmdTmp=="SET") {
+        commando=cmdTmp;
+        commandoValue=cmdTmpValue;
+      }
+      
+      else if (cmdTmp=="SLT") {
+        cmdSlot=cmdTmpValue;
+      }
+      else if (cmdTmp=="EXS") {
+        cmdCard=cmdTmpValue;
+        commando=cmdTmp;
+      }
+  
+      else if (cmdTmp=="CHK") {
+        cmdCard=cmdTmpValue;
+        commando=cmdTmp;
+      }
+      else if (cmdTmp=="RST") {
+        cmdCard=cmdTmpValue;
+        commando=cmdTmp;
+      }
+      else if (cmdTmp=="ADD") {
+        cmdCard=cmdTmpValue;
+        commando=cmdTmp;
+      }
+      else if (cmdTmp=="RMV") {
+        cmdCard=cmdTmpValue;
+        commando=cmdTmp;
+      }
+      else if (cmdTmp=="STA") {
+        cmdStatus=cmdTmpValue;
+      }
+      else if (cmdTmp=="RSN") {
+        cmdReason=cmdTmpValue;
+      }
+    }
+      //Serial.println("--------------------");
+      //Serial.println(msg);
+      //Serial.println("--------------------");
+
+      
+      
+      msg="";
+    }
+    else {
+      msg = msg + String(mybuffer[i]);
+    }
+  }
+
+  if (booResponse==true) {
+    Serial.println("--------------------");
+    Serial.println(commando);
+    Serial.println(cmdSlot);
+    Serial.println(cmdStatus);
+    Serial.println(cmdReason);
+    Serial.println("--------------------");
+    
+    if (commando=="SET") {
+      if (commandoValue=="slot") {
+        setSlot(cmdSlot);
+      }
+    }
+    else if (commando=="EXS") {
+      if (cmdStatus=="ok") {
+        if (cmdReason=="delete") {
+          Serial.println(F("Removing Pilot's Card..."));
+          deleteID(cmdCard);
+          Serial.println("-----------------------------");
+        }
+        if (cmdReason=="add") {
+          Serial.println(F("Adding Pilot's Card..."));
+          writeID(cmdCard);
+          Serial.println("-----------------------------");
+        }
+      }
+      
+      
+    }
+    
+    else if (commando=="CHK") {
+      
+      if (cmdStatus=="ok") {
+        Serial.print(F("Pilot "));
+        Serial.print(cmdCard);
+        Serial.print(F(" Checked In At "));
+        Serial.println(cmdSlot);
+        
+        granted(300);
+     
+      }
+      else if (cmdStatus=="failed") {
+        Serial.print(F("Pilot "));
+        Serial.print(cmdCard);
+        Serial.print(F(" NOT Checked In At "));
+        Serial.println(cmdSlot);
+  
+        denied();
+        
+      }
+      else if (cmdStatus=="notreg") {
+        Serial.print(F("Pilot "));
+        Serial.print(cmdCard);
+        Serial.print(F(" NOT registered "));
+  
+        denied();
+  
+      }
+      else if (cmdStatus=="noatt") {
+        Serial.print(F("Pilot "));
+        Serial.print(cmdCard);
+        Serial.print(F(" NO attendance"));
+  
+        denied();
+  
+      }
+      else if (cmdStatus=="nochan") {
+        Serial.print(F("Pilot "));
+        Serial.print(cmdCard);
+        Serial.print(F(" WRONG slot"));
+  
+        denied();
+      }
+    }
+    
+    else if (commando=="ADD") {
+      if (cmdStatus=="ok") {
+        Serial.println(F("Succesfully added ID "));
+        Serial.print(cmdCard);
+        Serial.println(F(" record to List"));
+        successWrite();
+      }
+      else {
+        failedWrite();
+      }
+    }
+    
+    else if (commando=="RMV") {
+      if (cmdStatus=="ok") {
+        Serial.println(F("Succesfully disabled ID "));
+        Serial.print(cmdCard);
+        Serial.println(F(" record in List"));
+        successDelete();
+      }
+      else {
+        failedWrite();
+      }
+    }
+    else if (commando=="RST") {
+      if (cmdStatus=="ok") {
+        Serial.println(F("Succesfully resetted ID "));
+        Serial.print(cmdCard);
+        Serial.println(F(" record in List"));
+        successDelete();
+      }
+      else {
+        Serial.println(F("Pilot "));
+        Serial.print(cmdCard);
+        Serial.println(F(" reset failed"));
+        failedWrite();
+      }
+    }
+  }          
+ 
+}
 
 //LED Playground
 /////////////////////////////////////////  Access Granted    ///////////////////////////////////
@@ -578,47 +592,27 @@ void normalModeOn () {
 }
 
 ///////////////////////////////////////// Add ID to EEPROM   ///////////////////////////////////
-void writeID( byte a[] ) {
-  if ( !findID( a ) ) {     // Before we write to the EEPROM, check to see if we have seen this card before!
-    //TODO ID an Master zwecks Registrierung
-    
+void writeID( String a ) {
+  //TODO - String kommt komisch an, war als byte [] nicht der fall
+  Serial.print(F("CMD:ADD"));
+  Serial.print(a);
+  Serial.print(F(":SLT"));
+  Serial.print(slot);
+  Serial.println(F(";"));
 
-    Serial.print(F("CMD:ADD"));
-    for ( uint8_t i = 0; i < 4; i++) {  //
-      Serial.print(a[i], HEX);
-    }
-    Serial.print(F(":SLT"));
-    Serial.print(slot);
-    Serial.println(F(";"));
-    Serial.println(F("Succesfully added ID record to List"));
-  }
-  else {
-    failedWrite();
-    Serial.println(F("Failed! There is something wrong with ID or bad List"));
-  }
 }
 
 ///////////////////////////////////////// Remove ID from EEPROM   ///////////////////////////////////
-void deleteID( byte a[] ) {
-  //if ( !findID( a ) ) {     // Before we delete from the EEPROM, check to see if we have this card!
-  //  failedWrite();      // If not
-  //  Serial.println(F("Failed! There is something wrong with ID or bad List"));
-  //}
-  //else {
-    //TODO ID löschen
-    
-    
+void deleteID( String a ) {
+    //TODO - String kommt komisch an, war als byte [] nicht der fall
     Serial.print(F("CMD:RMV"));
-    for ( uint8_t i = 0; i < 4; i++) {  //
-      Serial.print(a[i], HEX);
-    }
+    Serial.print(a);
     Serial.print(F(":SLT"));
     for ( uint8_t i = 0; i < 4; i++) {  //
       Serial.print(slot);
     }  
     Serial.println(F(";"));
 
-  //}
 }
 
 ///////////////////////////////////////// Check Bytes   ///////////////////////////////////
@@ -634,11 +628,8 @@ bool checkTwo ( byte a[], byte b[] ) {
 
 ///////////////////////////////////////// Find ID From EEPROM   ///////////////////////////////////
 uint8_t checkIn( byte a[]) {
-  //-1==bereits checkin
-  //-2==nicht registiert
-  //>-1 ==warteposition
   
-  //TODO Pi Slot + ID schicken
+
   Serial.print(F("CMD:CHK"));
   for ( uint8_t i = 0; i < 4; i++) {  //
     Serial.print(a[i], HEX);
@@ -651,9 +642,17 @@ uint8_t checkIn( byte a[]) {
 }
 
 ///////////////////////////////////////// Find ID From EEPROM   ///////////////////////////////////
-bool findID( byte a[] ) {
+bool findID( byte a[] ,String reason) {
   // TODO ask Pi, if ID exists
-  
+  Serial.print(F("ASK:EXS"));
+  for ( uint8_t i = 0; i < 4; i++) {  //
+    Serial.print(a[i], HEX);
+  }
+  Serial.print(F(":SLT"));
+  Serial.print(slot);
+  Serial.print(F(":RSN"));
+  Serial.print(reason);
+  Serial.println(F(";"));
   //return true;
 
   return false;
