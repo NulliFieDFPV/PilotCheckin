@@ -1,9 +1,5 @@
 import MySQLdb
-
-
-
-tables={}
-tables["pilots"]="tpilots"
+from config import cfg_db as dbconfig
 
 
 class db(object):
@@ -12,10 +8,10 @@ class db(object):
         pass
 
     def __connect(self):
-        self.db = MySQLdb.connect(host="localhost",  # your host, usually localhost
-                             user="udbpilot",  # your username
-                             passwd="pdbpilot",  # your password
-                             db="dbpilotcheckin")  # name of the data base
+        self.db = MySQLdb.connect(host=dbconfig.host,  # your host, usually localhost
+                             user=dbconfig.user,  # your username
+                             passwd=dbconfig.passwd,  # your password
+                             db=dbconfig.db)  # name of the data base
 
         self.db.autocommit( True)
 
