@@ -352,7 +352,7 @@ class ioserver(object):
 
         pilotId=0
 
-        attendies=self.__race.attendies()
+        attendies=self.__race.attendies(True)
 
         for aid, pilot in attendies.items():
             if pilot.uid==cardId:
