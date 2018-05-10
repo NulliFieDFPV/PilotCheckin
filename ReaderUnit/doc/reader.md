@@ -7,3 +7,5 @@ Liest RFID-Scanner aus und reicht die Daten an den Pi weiter
 Mit einer Master Card kann der Programmiermodus aktiviert werden.
 
 Im Programmiermodus können neue Karten hinzugefügt oder deaktiviert werden
+
+Mit einem Wipe-Button kann die Master Card zurück gesetzt werden
