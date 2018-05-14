@@ -29,9 +29,9 @@ def starten(raceid=1):
 
         anzahl =race.stoppeHeat()
         if anzahl > 0:
-            while iDauer<30:
+            while iDauer<10:
 
-                print "noch {} Sekunden bis zum naechsten Race".format(30-iDauer)
+                print "noch {} Sekunden bis zum naechsten Race".format(10-iDauer)
                 iDauer = iDauer + 1
                 time.sleep(1)
 
@@ -40,7 +40,7 @@ def starten(raceid=1):
 
             while iDauer<30:
 
-                print "noch {} Sekunden Bis zum naeschsten Race".format(60-iDauer)
+                print "noch {} Sekunden Bis zum naeschsten Race".format(30-iDauer)
 
                 iDauer=iDauer+1
                 time.sleep(1)
