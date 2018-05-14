@@ -19,8 +19,7 @@
 #include <EEPROM.h>     // We are going to read and write PICC's UIDs from/to EEPROM
 #include <SPI.h>        // RC522 Module uses SPI protocol
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
-
-
+#include <Adafruit_NeoPixel.h>
 
 /*
   Instead of a Relay you may want to use a servo. Servos can lock and unlock door locks too
@@ -37,25 +36,21 @@
 
 #define COMMON_ANODE
 
-#ifdef COMMON_ANODE
-#define LED_ON LOW
-#define LED_OFF HIGH
-#else
-#define LED_ON HIGH
-#define LED_OFF LOW
-#endif
+//#ifdef COMMON_ANODE
+//#define LED_ON LOW
+//#define LED_OFF HIGH
+//#else
+//#define LED_ON HIGH
+//#define LED_OFF LOW
+//#endif
 
-#define MAX_WORLD_COUNT 5
-#define MIN_WORLD_COUNT 2
-char *Words[MAX_WORLD_COUNT];
-
-constexpr uint8_t redLed = 7;   // Set Led Pins
-constexpr uint8_t greenLed = 6;
-constexpr uint8_t blueLed = 5;
+//constexpr uint8_t redLed = 7;   // Set Led Pins
+//constexpr uint8_t greenLed = 6;
+//constexpr uint8_t blueLed = 5;
 
 constexpr uint8_t relay = 4;     // Set Relay Pin
 constexpr uint8_t wipeB = 3;     // Button pin for WipeMode
-
+constexpr uint8_t ledpin = 2;     // WS2812 Pin
 bool programMode = false;  // initialize programming mode to false
 
 uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reader
@@ -78,21 +73,27 @@ constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 
+Adafruit_NeoPixel ledStrip = Adafruit_NeoPixel(30, ledpin, NEO_GRB + NEO_KHZ800);
+
 ///////////////////////////////////////// Setup ///////////////////////////////////
 void setup() {
   
   //Arduino Pin Configuration
-  pinMode(redLed, OUTPUT);
-  pinMode(greenLed, OUTPUT);
-  pinMode(blueLed, OUTPUT);
+  //pinMode(redLed, OUTPUT);
+  //pinMode(greenLed, OUTPUT);
+  //pinMode(blueLed, OUTPUT);
   pinMode(wipeB, INPUT_PULLUP);   // Enable pin's pull up resistor
   pinMode(relay, OUTPUT);
-  
+
+
+  ledStrip.begin();
+
   //Be careful how relay circuit behave on while resetting or power-cycling your Arduino
   digitalWrite(relay, HIGH);    // Make sure door is locked
-  digitalWrite(redLed, LED_OFF);  // Make sure led is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure led is off
-  digitalWrite(blueLed, LED_OFF); // Make sure led is off
+  colorWipe(0,0,0,5);
+  //digitalWrite(redLed, LED_OFF);  // Make sure led is off
+  //digitalWrite(greenLed, LED_OFF);  // Make sure led is off
+  //digitalWrite(blueLed, LED_OFF); // Make sure led is off
 
   //Protocol Configuration
   Serial.begin(9600);  // Initialize serial communications with PC
@@ -106,7 +107,8 @@ void setup() {
 
   //Wipe Code - If the Button (wipeB) Pressed while setup run (powered on) it wipes EEPROM
   if (digitalRead(wipeB) == LOW) {  // when button pressed pin should get low, button connected to ground
-    digitalWrite(redLed, LED_ON); // Red Led stays on to inform user we are going to wipe
+    //digitalWrite(redLed, LED_ON); // Red Led stays on to inform user we are going to wipe
+    setLED(255,0,0,3);
     Serial.println(F("Wipe Button Pressed"));
     Serial.println(F("You have 10 seconds to Cancel"));
     Serial.println(F("This will be remove all records and cannot be undone"));
@@ -122,19 +124,22 @@ void setup() {
         }
       }
       Serial.println(F("EEPROM Successfully Wiped"));
-      digitalWrite(redLed, LED_OFF);  // visualize a successful wipe
-      delay(200);
-      digitalWrite(redLed, LED_ON);
-      delay(200);
-      digitalWrite(redLed, LED_OFF);
-      delay(200);
-      digitalWrite(redLed, LED_ON);
-      delay(200);
-      digitalWrite(redLed, LED_OFF);
+      //digitalWrite(redLed, LED_OFF);  // visualize a successful wipe
+      //delay(200);
+      //digitalWrite(redLed, LED_ON);
+      //delay(200);
+      //digitalWrite(redLed, LED_OFF);
+      //delay(200);
+      //digitalWrite(redLed, LED_ON);
+      //delay(200);
+      //digitalWrite(redLed, LED_OFF);
+      rainbowCycle(1);
+      
     }
     else {
       Serial.println(F("Wiping Cancelled")); // Show some feedback that the wipe button did not pressed for 15 seconds
-      digitalWrite(redLed, LED_OFF);
+      //digitalWrite(redLed, LED_OFF);
+      setLED(0,0,0,3);
     }
   }
 
@@ -148,10 +153,13 @@ void setup() {
     Serial.println(F("Scan A Pilot's Card to define as Master Card"));
     do {
       successRead = getID();            // sets successRead to 1 when we get read from reader otherwise 0
-      digitalWrite(blueLed, LED_ON);    // Visualize Master Card need to be defined
+      colorWipe(0,0,255,5);
+      //digitalWrite(blueLed, LED_ON);    // Visualize Master Card need to be defined
       delay(200);
-      digitalWrite(blueLed, LED_OFF);
+      colorWipe(0,0,0,5);
+      //digitalWrite(blueLed, LED_OFF);
       delay(200);
+      colorWipe(0,0,255, 5);
     }
     while (!successRead);                  // Program will not go further while you not get a successful read
     for ( uint8_t j = 0; j < 4; j++ ) {        // Loop 4 times
@@ -186,7 +194,7 @@ void setup() {
   Serial.println(F("-------------------"));
   Serial.println(F("Everything is ready"));
   Serial.println(F("Waiting Pilot's Card to be scanned"));
-  cycleLeds();    // Everything ready lets give user some feedback by cycling leds
+  rainbow(1);    // Everything ready lets give user some feedback by cycling leds
 }
 
 
@@ -198,9 +206,10 @@ void loop () {
     // When device is in use if wipe button pressed for 10 seconds initialize Master Card wiping
     if (digitalRead(wipeB) == LOW) { // Check if button is pressed
       // Visualize normal operation is iterrupted by pressing wipe button Red is like more Warning to user
-      digitalWrite(redLed, LED_ON);  // Make sure led is off
-      digitalWrite(greenLed, LED_OFF);  // Make sure led is off
-      digitalWrite(blueLed, LED_OFF); // Make sure led is off
+      //digitalWrite(redLed, LED_ON);  // Make sure led is off
+      //digitalWrite(greenLed, LED_OFF);  // Make sure led is off
+      //digitalWrite(blueLed, LED_OFF); // Make sure led is off
+      setLED(255,0,0,3);
       // Give some feedback
       Serial.println(F("Wipe Button Pressed"));
       Serial.println(F("Master Card will be Erased! in 10 seconds"));
@@ -214,7 +223,7 @@ void loop () {
       Serial.println(F("Master Card Erase Cancelled"));
     }
     if (programMode) {
-      cycleLeds();              // Program Mode cycles through Red Green Blue waiting to read a new card
+      rainbowCycle(1);              // Program Mode cycles through Red Green Blue waiting to read a new card
     }
     else {
       normalModeOn();     // Normal mode, blue Power LED is on, all others are off
@@ -269,6 +278,7 @@ void loop () {
       else {                    // If scanned card is not known add it
       */
         Serial.println(F("Adding Pilot's Card..."));
+        
         writeID(readCard);
         Serial.println(F("-----------------------------"));
         Serial.println(F("Scan a Pilot's Card to ADD or REMOVE to List"));
@@ -291,7 +301,92 @@ void loop () {
       
     }
   }
+
+
+  //TODO - LED funktion
+  uint32_t c;
+  c = ledStrip.Color(255, 0, 0);
+  for(uint16_t i=0; i < ledStrip.numPixels(); i++) {
+     ledStrip.setPixelColor(i, c);
+  }
+  ledStrip.show();
 }
+
+
+String CreateHexString(byte data[]) {
+  
+char c[8];
+byte b;
+
+for (int y = 0, x = 0; y < 4; ++y, ++x)
+{
+  b = ((byte)(data[y] >> 4));
+  c[x] = (char)(b > 9 ? b + 0x37 : b + 0x30);
+  b = ((byte)(data[y] & 0xF));
+  c[++x] = (char)(b > 9 ? b + 0x37 : b + 0x30);
+}
+
+  return c;
+}
+
+
+void setLED(int r, int g, int b, int num) {
+
+  //colorWipe(0,0,0, 5);
+  //delay(200);
+  ledStrip.setPixelColor(num, ledStrip.Color(r,g,b)); // Moderately bright green color.
+  ledStrip.show(); // This sends the updated pixel color t
+  
+}
+// Slightly different, this makes the rainbow equally distributed throughout
+void rainbowCycle(uint8_t wait) {
+  uint16_t i, j;
+
+  for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
+    for(i=0; i< ledStrip.numPixels(); i++) {
+      ledStrip.setPixelColor(i, Wheel(((i * 256 / ledStrip.numPixels()) + j) & 255));
+    }
+    ledStrip.show();
+    delay(wait);
+  }
+}
+
+// Fill the dots one after the other with a color
+void colorWipe(int r, int g, int b, uint8_t wait) {
+  for(uint16_t i=0; i<ledStrip.numPixels(); i++) {
+      ledStrip.setPixelColor(i, ledStrip.Color(r,g,b));
+      ledStrip.show();
+      delay(wait);
+  }
+}
+
+void rainbow(uint8_t wait) {
+  uint16_t i, j;
+
+  for(j=0; j<256; j++) {
+    for(i=0; i<ledStrip.numPixels(); i++) {
+      ledStrip.setPixelColor(i, Wheel((i+j) & 255));
+    }
+    ledStrip.show();
+    delay(wait);
+  }
+}
+
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t Wheel(byte WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+    return ledStrip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  }
+  if(WheelPos < 170) {
+    WheelPos -= 85;
+    return ledStrip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+  WheelPos -= 170;
+  return ledStrip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+}
+
 
 void parseCommand(String mybuffer) {
   
@@ -305,7 +400,6 @@ void parseCommand(String mybuffer) {
   String cmdCard="";
   String cmdReason="";
   bool booResponse=false;
-
   
   for (int i = 0; i < intCount; i++)
   {
@@ -375,7 +469,9 @@ void parseCommand(String mybuffer) {
   }
 
   if (booResponse==true) {
+
     Serial.println("--------------------");
+    
     Serial.println(commando);
     Serial.println(cmdSlot);
     Serial.println(cmdStatus);
@@ -391,12 +487,14 @@ void parseCommand(String mybuffer) {
       if (cmdStatus=="ok") {
         if (cmdReason=="delete") {
           Serial.println(F("Removing Pilot's Card..."));
-          deleteID(cmdCard);
+          //Machen wir das hier überhaupt noch??
+          //deleteID(cmdCard);
           Serial.println("-----------------------------");
         }
         if (cmdReason=="add") {
           Serial.println(F("Adding Pilot's Card..."));
-          writeID(cmdCard);
+          //Machen wir das hier überhaupt noch??
+          //writeID(cmdCard);
           Serial.println("-----------------------------");
         }
       }
@@ -407,7 +505,7 @@ void parseCommand(String mybuffer) {
     else if (commando=="CHK") {
       
       if (cmdStatus=="ok") {
-        Serial.print(F("Pilot "));
+        Serial.print(F("Pilot ID "));
         Serial.print(cmdCard);
         Serial.print(F(" Checked In At "));
         Serial.println(cmdSlot);
@@ -416,7 +514,7 @@ void parseCommand(String mybuffer) {
      
       }
       else if (cmdStatus=="failed") {
-        Serial.print(F("Pilot "));
+        Serial.print(F("Pilot ID "));
         Serial.print(cmdCard);
         Serial.print(F(" NOT Checked In At "));
         Serial.println(cmdSlot);
@@ -425,25 +523,25 @@ void parseCommand(String mybuffer) {
         
       }
       else if (cmdStatus=="notreg") {
-        Serial.print(F("Pilot "));
+        Serial.print(F("Pilot ID "));
         Serial.print(cmdCard);
-        Serial.print(F(" NOT registered "));
+        Serial.println(F(" NOT registered "));
   
         denied();
   
       }
       else if (cmdStatus=="noatt") {
-        Serial.print(F("Pilot "));
+        Serial.print(F("Pilot ID "));
         Serial.print(cmdCard);
-        Serial.print(F(" NO attendance"));
+        Serial.println(F(" NO attendance"));
   
         denied();
   
       }
       else if (cmdStatus=="nochan") {
-        Serial.print(F("Pilot "));
+        Serial.print(F("Pilot ID "));
         Serial.print(cmdCard);
-        Serial.print(F(" WRONG slot"));
+        Serial.println(F(" WRONG slot"));
   
         denied();
       }
@@ -451,38 +549,38 @@ void parseCommand(String mybuffer) {
     
     else if (commando=="ADD") {
       if (cmdStatus=="ok") {
-        Serial.println(F("Succesfully added ID "));
-        Serial.print(cmdCard);
-        Serial.println(F(" record to List"));
+        Serial.print(F("Succesfully added ID "));
+        Serial.println(cmdCard);
         successWrite();
       }
       else {
+        Serial.print(F("Adding Failed ID "));
+        Serial.println(cmdCard);
         failedWrite();
       }
     }
     
     else if (commando=="RMV") {
       if (cmdStatus=="ok") {
-        Serial.println(F("Succesfully disabled ID "));
-        Serial.print(cmdCard);
-        Serial.println(F(" record in List"));
+        Serial.print(F("Succesfully disabled ID "));
+        Serial.println(cmdCard);
         successDelete();
       }
       else {
+        Serial.print(F("Removing Failed ID "));
+        Serial.println(cmdCard);
         failedWrite();
       }
     }
     else if (commando=="RST") {
       if (cmdStatus=="ok") {
-        Serial.println(F("Succesfully resetted ID "));
-        Serial.print(cmdCard);
-        Serial.println(F(" record in List"));
+        Serial.print(F("Succesfully resetted ID "));
+        Serial.println(cmdCard);
         successDelete();
       }
       else {
-        Serial.println(F("Pilot "));
-        Serial.print(cmdCard);
-        Serial.println(F(" reset failed"));
+        Serial.print(F("Reset Failed ID "));
+        Serial.println(cmdCard);
         failedWrite();
       }
     }
@@ -493,9 +591,10 @@ void parseCommand(String mybuffer) {
 //LED Playground
 /////////////////////////////////////////  Access Granted    ///////////////////////////////////
 void granted ( uint16_t setDelay) {
-  digitalWrite(blueLed, LED_OFF);   // Turn off blue LED
-  digitalWrite(redLed, LED_OFF);  // Turn off red LED
-  digitalWrite(greenLed, LED_ON);   // Turn on green LED
+  setLED(0,255,0,3);
+  //digitalWrite(blueLed, LED_OFF);   // Turn off blue LED
+  //digitalWrite(redLed, LED_OFF);  // Turn off red LED
+  //digitalWrite(greenLed, LED_ON);   // Turn on green LED
   digitalWrite(relay, LOW);     // Unlock door!
   delay(setDelay);          // Hold door lock open for given seconds
   digitalWrite(relay, HIGH);    // Relock door
@@ -504,9 +603,10 @@ void granted ( uint16_t setDelay) {
 
 ///////////////////////////////////////// Access Denied  ///////////////////////////////////
 void denied() {
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  digitalWrite(redLed, LED_ON);   // Turn on red LED
+  setLED(255,0,0,3);
+  //digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
+  //digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
+  //digitalWrite(redLed, LED_ON);   // Turn on red LED
   delay(1000);
 }
 
@@ -560,42 +660,34 @@ void ShowReaderDetails() {
     Serial.println(F("WARNING: Communication failure, is the MFRC522 properly connected?"));
     Serial.println(F("SYSTEM HALTED: Check connections."));
     // Visualize system is halted
-    digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-    digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-    digitalWrite(redLed, LED_ON);   // Turn on red LED
+    colorWipe(255,0,0, 1);
+    //digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
+    //digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
+    //digitalWrite(redLed, LED_ON);   // Turn on red LED
     while (true); // do not go further
   }
 }
 
-///////////////////////////////////////// Cycle Leds (Program Mode) ///////////////////////////////////
-void cycleLeds() {
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  digitalWrite(greenLed, LED_ON);   // Make sure green LED is on
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  delay(200);
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
-  delay(200);
-  digitalWrite(redLed, LED_ON);   // Make sure red LED is on
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  delay(200);
-}
 
 //////////////////////////////////////// Normal Mode Led  ///////////////////////////////////
 void normalModeOn () {
-  digitalWrite(blueLed, LED_ON);  // Blue LED ON and ready to read card
-  digitalWrite(redLed, LED_OFF);  // Make sure Red LED is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure Green LED is off
+  setLED(0, 0,0,0);
+  setLED(0, 255,0,1);
+  setLED(0, 0,0,2);
+  setLED(0, 0,0,3);
+  //digitalWrite(blueLed, LED_ON);  // Blue LED ON and ready to read card
+  //digitalWrite(redLed, LED_OFF);  // Make sure Red LED is off
+  //digitalWrite(greenLed, LED_OFF);  // Make sure Green LED is off
   digitalWrite(relay, HIGH);    // Make sure Door is Locked
 }
 
 ///////////////////////////////////////// Add ID to EEPROM   ///////////////////////////////////
-void writeID( String a ) {
-  //TODO - String kommt komisch an, war als byte [] nicht der fall
+void writeID( byte a[]) {
+
   Serial.print(F("CMD:ADD"));
-  Serial.print(a);
+  for ( uint8_t i = 0; i < 4; i++) {  //
+    Serial.print(a[i], HEX);
+  }
   Serial.print(F(":SLT"));
   Serial.print(slot);
   Serial.println(F(";"));
@@ -661,58 +753,71 @@ bool findID( byte a[] ,String reason) {
 ///////////////////////////////////////// Write Success to EEPROM   ///////////////////////////////////
 // Flashes the green LED 3 times to indicate a successful write to EEPROM
 void successWrite() {
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is on
+
+  colorWipe(0,0,0, 5);
   delay(200);
-  digitalWrite(greenLed, LED_ON);   // Make sure green LED is on
+  
+  colorWipe(0,0,255, 5);
   delay(200);
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
+  colorWipe(0,0,0, 5);
   delay(200);
-  digitalWrite(greenLed, LED_ON);   // Make sure green LED is on
-  delay(200);
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  delay(200);
-  digitalWrite(greenLed, LED_ON);   // Make sure green LED is on
+  setLED(0,0,255,3);
   delay(200);
 }
 
 ///////////////////////////////////////// Write Failed to EEPROM   ///////////////////////////////////
 // Flashes the red LED 3 times to indicate a failed write to EEPROM
 void failedWrite() {
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
+
+  colorWipe(0,0,0, 5);
   delay(200);
-  digitalWrite(redLed, LED_ON);   // Make sure red LED is on
+  colorWipe(255,0,0, 5);
   delay(200);
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
+  colorWipe(0,0,0, 5);
   delay(200);
-  digitalWrite(redLed, LED_ON);   // Make sure red LED is on
+  setLED(0,0,255,3);
   delay(200);
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  delay(200);
-  digitalWrite(redLed, LED_ON);   // Make sure red LED is on
-  delay(200);
+  
+  //digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
+  //digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
+  //digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
+  //delay(200);
+  //digitalWrite(redLed, LED_ON);   // Make sure red LED is on
+  //delay(200);
+  //digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
+  //delay(200);
+  //digitalWrite(redLed, LED_ON);   // Make sure red LED is on
+  //delay(200);
+  //digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
+  //delay(200);
+  //digitalWrite(redLed, LED_ON);   // Make sure red LED is on
+  //delay(200);
 }
 
 ///////////////////////////////////////// Success Remove UID From EEPROM  ///////////////////////////////////
 // Flashes the blue LED 3 times to indicate a success delete to EEPROM
 void successDelete() {
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
+
+  colorWipe(0,0,0, 5);
   delay(200);
-  digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
+  setLED(0,0,255,3);
+  //digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
+  //digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
+  //digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
   delay(200);
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
+  setLED(0,0,0,3);
+  //digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
   delay(200);
-  digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
+  setLED(0,0,255,3);
+  //digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
   delay(200);
-  digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
+  setLED(0,0,0,3);
+  //digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
   delay(200);
-  digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
-  delay(200);
+  //digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
+  //delay(200);
+  //digitalWrite(blueLed, LED_ON);  // Make sure blue LED is on
+  //delay(200);
 }
 
 ////////////////////// Check readCard IF is masterCard   ///////////////////////////////////

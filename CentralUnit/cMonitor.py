@@ -20,12 +20,26 @@ class monitor(object):
         while self.__active:
             channels=self.__race.channels()
             outputline =""
+            nextline=""
             columns={}
+            headerzeilen=[]
+            nextzeilen = []
+            tabellenzeilen=[]
+            waitpilot=""
 
-            print "++++++++++++++++++++++++++++++++++++++"
+
+            headerzeilen.append( "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             bestchannel = self.__race.shortestChannel
-            print "++++ Best Channel: " + channels[bestchannel].channelname + " ++++++++++++++"
-            print "++++++++++++++++++++++++++++++++++++"
+            headerzeilen.append("+++++ Best Channel: " + channels[bestchannel].channelname + " ++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            headerzeilen.append("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+            nextzeilen.append("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            nextzeilen.append("+++++ Next Pilots: +++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            nextzeilen.append("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+            tabellenzeilen.append("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            tabellenzeilen.append("+++++ Waiting Order: +++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            tabellenzeilen.append("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
             for cid, channel in channels.items():
 
@@ -33,25 +47,47 @@ class monitor(object):
                 columns[channel.channelname]=waitlist
 
 
-
-
-
-            for channelname, waitlist in columns.items():
+            for channelname, waitlist in sorted(columns.items()):
                 i = 1
                 outputline = channelname + ": "
+                nextline = channelname+ ": "
+                waitpilot = ""
 
                 for callsign in waitlist:
 
                     if i==1:
                         outputline = outputline + callsign + " |  "
+
                     else:
                         outputline=outputline + str(i) + ". " + callsign + "  |  "
 
+                    if i==1:
+                        if callsign[-1:] !="*":
+                            #Fliegt gerade, dann die 2
+                            waitpilot=callsign
+                    elif i==2:
+                        if waitpilot=="":
+                            waitpilot = callsign
+
                     i=i+1
 
-                print outputline
+                nextline = nextline + waitpilot
 
-            print "++++++++++++++++++++++++++++++++++++++"
+                nextzeilen.append(nextline)
+
+
+                tabellenzeilen.append(outputline)
+
+            nextzeilen.append("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            tabellenzeilen.append("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+            print "\n".join(headerzeilen)
+            print " "
+
+            print "\n".join(nextzeilen)
+            print " "
+
+            print "\n".join(tabellenzeilen)
             print " "
 
             time.sleep(0.5)

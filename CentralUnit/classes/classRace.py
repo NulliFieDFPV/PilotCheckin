@@ -183,7 +183,7 @@ class cRace(object):
         mydb = db()
         sql = "SELECT * FROM {} WHERE ".format(sqltbl["rfid"])
         sql = sql + "UID='{}' ".format(cardId)
-        sql = sql + "AND status <> 0 "
+        #sql = sql + "AND status <> 0 "
         result=mydb.query(sql)
 
         if len(result)==0:
