@@ -1,0 +1,9 @@
+[submodule "CentralUnit/libs/WS2812"]
+	path = CentralUnit/libs/WS2812
+	url = git://github.com/jgarff/rpi_ws281x.git
+[submodule "ReaderUnit/libs/Adafruit_NeoPixel"]
+	path = ReaderUnit/libs/Adafruit_NeoPixel
+	url = git://github.com/adafruit/Adafruit_NeoPixel.git
+[submodule "ReaderUnit/libs/MFRC522"]
+	path = ReaderUnit/libs/MFRC522
+	url = git://github.com/miguelbalboa/rfid.git
