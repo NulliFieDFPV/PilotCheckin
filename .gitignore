@@ -1,3 +1,5 @@
 .idea
+.directory
+*.zip
 venv
 *.pyc
