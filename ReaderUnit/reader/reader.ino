@@ -19,7 +19,7 @@
 #include <EEPROM.h>     // We are going to read and write PICC's UIDs from/to EEPROM
 #include <SPI.h>        // RC522 Module uses SPI protocol
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
-
+#include <Adafruit_NeoPixel.h>
 
 /*
   Instead of a Relay you may want to use a servo. Servos can lock and unlock door locks too
@@ -50,7 +50,7 @@ constexpr uint8_t blueLed = 5;
 
 constexpr uint8_t relay = 4;     // Set Relay Pin
 constexpr uint8_t wipeB = 3;     // Button pin for WipeMode
-
+constexpr uint8_t ledpin = 2;     // Button pin for WipeMode
 bool programMode = false;  // initialize programming mode to false
 
 uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reader
@@ -73,6 +73,8 @@ constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 
+Adafruit_NeoPixel ledStrip = Adafruit_NeoPixel(30, PIN, NEO_GRB + NEO_KHZ800);
+
 ///////////////////////////////////////// Setup ///////////////////////////////////
 void setup() {
   
@@ -82,7 +84,11 @@ void setup() {
   pinMode(blueLed, OUTPUT);
   pinMode(wipeB, INPUT_PULLUP);   // Enable pin's pull up resistor
   pinMode(relay, OUTPUT);
-  
+
+
+  ledStrip.begin();
+  ledStrip.show();
+
   //Be careful how relay circuit behave on while resetting or power-cycling your Arduino
   digitalWrite(relay, HIGH);    // Make sure door is locked
   digitalWrite(redLed, LED_OFF);  // Make sure led is off
@@ -287,6 +293,15 @@ void loop () {
       
     }
   }
+
+
+  //TODO - LED funktion
+  uint32_t c;
+  c = ledStrip.Color(255, 0, 0);
+  for(uint16_t i=0; i < ledStrip.numPixels(); i++) {
+     ledStrip.setPixelColor(i, c);
+  }
+  strip.show();
 }
 
 
@@ -305,6 +320,42 @@ for (int y = 0, x = 0; y < 4; ++y, ++x)
 
   return c;
 }
+
+
+// Slightly different, this makes the rainbow equally distributed throughout
+void rainbowCycle(uint8_t wait) {
+  uint16_t i, j;
+
+  for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
+    for(i=0; i< ledStrip.numPixels(); i++) {
+      ledStrip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
+    }
+    ledStrip.show();
+    delay(wait);
+  }
+}
+
+// Fill the dots one after the other with a color
+void colorWipe(uint32_t c, uint8_t wait) {
+  for(uint16_t i=0; i<ledStrip.numPixels(); i++) {
+      ledStrip.setPixelColor(i, c);
+      ledStrip.show();
+      delay(wait);
+  }
+}
+
+void rainbow(uint8_t wait) {
+  uint16_t i, j;
+
+  for(j=0; j<256; j++) {
+    for(i=0; i<ledStrip.numPixels(); i++) {
+      ledStrip.setPixelColor(i, Wheel((i+j) & 255));
+    }
+    ledStrip.show();
+    ledStrip(wait);
+  }
+}
+
 
 void parseCommand(String mybuffer) {
   
