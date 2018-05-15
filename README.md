@@ -30,17 +30,14 @@ Voraussicht:
 
 Benötigte Hardware:
 - Raspberry Pi 1-3 o.ä.
-- 1x LED blau
-- 1x LED grün
-- 1x LED rot
+- 11x WS2812
 - 1x Taster
+- 1x Buzzer
 
 - pro Channel:
   - 1x Arduino Nano V3
   - 1x MFRC522 RFID Scanner
-  - 1x LED blau
-  - 1x LED grün
-  - 1x LED rot
+  - 4x WS2812
   - 1x Taster
 
 
@@ -63,12 +60,10 @@ Arduino:
     RST/Reset |  RST         | D9
     SPI SS    |  SDA(SS)     | D10
     SPI MOSI  |  MOSI        | D11
-    SPI MISO  |  MISO        | 12
+    SPI MISO  |  MISO        | D12
     SPI SCK   |  SCK         | D13
 
-    redLed    |              | D7
-    greenLed  |              | D6
-    blueLed   |              | D5
+    ledPin    |              | D2
     Button    |              | D3
     Relay     |              | D4
 
