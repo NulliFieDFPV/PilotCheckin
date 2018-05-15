@@ -171,10 +171,11 @@ void parseCommand(String mybuffer) {
     }
     
     else if (commando=="RMV") {
+      //TODO obsolet
       if (cmdStatus=="ok") {
         Serial.print(F("Succesfully disabled ID "));
         Serial.println(cmdCard);
-        successDelete();
+        successReset();
       }
       else {
         Serial.print(F("Removing Failed ID "));
@@ -186,7 +187,7 @@ void parseCommand(String mybuffer) {
       if (cmdStatus=="ok") {
         Serial.print(F("Succesfully resetted ID "));
         Serial.println(cmdCard);
-        successDelete();
+        successReset();
       }
       else {
         Serial.print(F("Reset Failed ID "));

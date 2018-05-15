@@ -47,13 +47,12 @@ int incomingByte=0;
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte masterCard[4];   // Stores master card's ID read from EEPROM
 
-int ledPins[ANZAHL_LEDS];
+//Buffer für den Parser, hier kommen die Chars aus dem Pi rein
 int intCount=0;
 char mybuffer[64];
 
-int channel_r=0;
-int channel_g=0;
-int channel_b=0;    
+//global verfügbare channel-farbe   
+int channelColor[3]={0, 0, 0};
 
 // Create MFRC522 instance.
 constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
@@ -73,7 +72,12 @@ void setup() {
   pinMode(relay, OUTPUT);
   //Be careful how relay circuit behave on while resetting or power-cycling your Arduino
   digitalWrite(relay, HIGH);    // Make sure door is locked
+
+
+  //LEDs zurücksetzen
   colorWipe(0,0,0,5);
+
+  //Channelfarbe setzen (sollte jetzt noch schwarz sein)
   colorChannel();
   
   //Protocol Configuration
@@ -81,14 +85,19 @@ void setup() {
   SPI.begin();           // MFRC522 Hardware uses SPI protocol
   mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
 
+
   //If you set Antenna Gain to Max it will increase reading distance
   //mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max);
   Serial.println(F("Pilot Access Control v0.1"));   // For debugging purposes
   ShowReaderDetails();  // Show details of PCD - MFRC522 Card Reader details
 
+
+
   //Wipe Code - If the Button (wipeB) Pressed while setup run (powered on) it wipes EEPROM
   if (digitalRead(wipeB) == LOW) {  // when button pressed pin should get low, button connected to ground
+    
     //digitalWrite(redLed, LED_ON); // Red Led stays on to inform user we are going to wipe
+    //TODO
     setLED(255,0,0,3);
     Serial.println(F("Wipe Button Pressed"));
     Serial.println(F("You have 10 seconds to Cancel"));
@@ -105,22 +114,14 @@ void setup() {
         }
       }
       Serial.println(F("EEPROM Successfully Wiped"));
-      //digitalWrite(redLed, LED_OFF);  // visualize a successful wipe
-      //delay(200);
-      //digitalWrite(redLed, LED_ON);
-      //delay(200);
-      //digitalWrite(redLed, LED_OFF);
-      //delay(200);
-      //digitalWrite(redLed, LED_ON);
-      //delay(200);
-      //digitalWrite(redLed, LED_OFF);
       rainbowCycle(1);
       
     }
     else {
       Serial.println(F("Wiping Cancelled")); // Show some feedback that the wipe button did not pressed for 15 seconds
       //digitalWrite(redLed, LED_OFF);
-      setLED(0,0,0,3);
+      //TODO, farbe setzen?
+      failedWrite();
     }
   }
 
@@ -132,23 +133,26 @@ void setup() {
   if (EEPROM.read(1) != 143) {
     Serial.println(F("No Master Card defined"));
     Serial.println(F("Scan A Pilot's Card to define as Master Card"));
+
+    
     do {
       successRead = getID();            // sets successRead to 1 when we get read from reader otherwise 0
-      colorWipe(0,0,255,5);
-      //digitalWrite(blueLed, LED_ON);    // Visualize Master Card need to be defined
+      rainbow(1);
       delay(200);
-      colorWipe(0,0,0,5);
-      //digitalWrite(blueLed, LED_OFF);
-      delay(200);
-      colorWipe(0,0,255, 5);
     }
     while (!successRead);                  // Program will not go further while you not get a successful read
+
+
+    
     for ( uint8_t j = 0; j < 4; j++ ) {        // Loop 4 times
       EEPROM.write( 2 + j, readCard[j] );  // Write scanned PICC's UID to EEPROM, start from address 3
     }
     EEPROM.write(1, 143);                  // Write to EEPROM we defined Master Card.
     Serial.println(F("Master Card Defined"));
+
+    
   }
+
   
   Serial.println(F("-------------------"));
   Serial.println(F("Master Card's UID"));
@@ -175,21 +179,29 @@ void setup() {
   Serial.println(F("-------------------"));
   Serial.println(F("Everything is ready"));
   Serial.println(F("Waiting Pilot's Card to be scanned"));
-  rainbow(1);    // Everything ready lets give user some feedback by cycling leds
+  
+  rainbowCycle(5);    // Everything ready lets give user some feedback by cycling leds
 }
+
+
 
 
 
 ///////////////////////////////////////// Main Loop ///////////////////////////////////
 void loop () {
 
+
   //Hauptschleife, zuerst RFID auslesen, dann Pi
   do {
+    
     successRead = getID();  // sets successRead to 1 when we get read from reader otherwise 0
     colorChannel();
-    
+
+    ////////////////// Master Card Wipe ////////////////////////////////////////////////
     // When device is in use if wipe button pressed for 10 seconds initialize Master Card wiping
     if (digitalRead(wipeB) == LOW) { // Check if button is pressed
+
+      //TODO, was leuchtet nun wie?
       setLED(255,0,0,3);
       
       // Give some feedback
@@ -207,9 +219,10 @@ void loop () {
       Serial.println(F("Master Card Erase Cancelled"));
     }
 
-    
+
+    //Anzeige, ob im Program Mode, oder normalen Mode
     if (programMode) {
-      rainbowCycle(1);              // Program Mode cycles through Red Green Blue waiting to read a new card
+      programModeOn();              // Program Mode cycles through Red Green Blue waiting to read a new card
     }
     else {
       normalModeOn();     // Normal mode, blue Power LED is on, all others are off
@@ -243,12 +256,7 @@ void loop () {
   //So, jetzt ist ne Karte gescannt worden
   //mal gucken, was da so geht
   //Blitzer, wenn ein loop durch ist (wird nach read() weiter laufen
-  ledPins[0]=1;
-  ledPins[1]=1;
-  ledPins[2]=1;
-  ledPins[3]=0;
-  
-  colorBlink(255, 132, 12, 1, ledPins, 50);
+  cardScanned();
 
   colorChannel();
   

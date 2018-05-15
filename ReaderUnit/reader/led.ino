@@ -1,66 +1,98 @@
-///////////////////////////////////////// Write Success to EEPROM   ///////////////////////////////////
-// Flashes the green LED 3 times to indicate a successful write to EEPROM
-void successWrite() {
 
+
+int ledPins[ANZAHL_LEDS];
+
+
+void successWrite() {
+  //TODO
   colorWipe(0,0,0, 5);
   delay(200);
   
   colorWipe(0,0,255, 5);
   delay(200);
+  
   colorWipe(0,0,0, 5);
   delay(200);
-  setLED(0,0,255,3);
-  delay(200);
+
 }
 
-///////////////////////////////////////// Write Failed to EEPROM   ///////////////////////////////////
-// Flashes the red LED 3 times to indicate a failed write to EEPROM
-void failedWrite() {
+void cardScanned() {
+  
+  ledPins[0]=1;
+  ledPins[1]=1;
+  ledPins[2]=1;
+  ledPins[3]=0;
+  
+  colorBlink(255, 132, 12, 1, 50);
+  
+}
 
+void failedWrite() {
+  //TODO
   colorWipe(0,0,0, 5);
   delay(200);
   colorWipe(255,0,0, 5);
   delay(200);
   colorWipe(0,0,0, 5);
   delay(200);
-  setLED(0,0,255,3);
-  delay(200);
-  
-  //digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
-  //digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  //digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
-  //delay(200);
-  //digitalWrite(redLed, LED_ON);   // Make sure red LED is on
-  //delay(200);
-  //digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  //delay(200);
-  //digitalWrite(redLed, LED_ON);   // Make sure red LED is on
-  //delay(200);
-  //digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
-  //delay(200);
-  //digitalWrite(redLed, LED_ON);   // Make sure red LED is on
-  //delay(200);
+
 }
 
-///////////////////////////////////////// Success Remove UID From EEPROM  ///////////////////////////////////
-// Flashes the blue LED 3 times to indicate a success delete to EEPROM
-void successDelete() {
-
+void successReset() {
 
   ledPins[0]=0;
   ledPins[1]=1;
   ledPins[2]=1;
   ledPins[3]=0;
   
-  colorBlink(5, 6, 5, 1, ledPins, 400);
+  colorBlink(5, 6, 5, 1, 400);
   
   delay(1000);
   
 }
 
-//////////////////////////////////////// Normal Mode Led  ///////////////////////////////////
+void programModeOn () {
+  
+  for (int i=0;i<=ANZAHL_LEDS; i++) {
+    if (i==MODE_LED) {
+      setLED(252, 12, 255, MODE_LED);
+    }
+    else if (i != CHANNEL_LED) {
+      setLED(0, 0, 0, i);
+    }
+  }
+
+  delay(200);
+  
+  for (int i=0;i<=ANZAHL_LEDS; i++) {
+    if (i==MODE_LED) {
+      //setLED(252, 12, 255, MODE_LED);
+    }
+    else if (i != CHANNEL_LED) {
+      setLED(252, 12, 255, i);
+      delay(50);
+    }
+  }
+
+  delay(200);
+  
+  for (int i=0;i<=ANZAHL_LEDS; i++) {
+    if (i==MODE_LED) {
+      //setLED(252, 12, 255, MODE_LED);
+    }
+    else if (i != CHANNEL_LED) {
+      setLED(0, 0, 0, i);
+      delay(50);
+    }
+  }
+  
+}
+
+
 void normalModeOn () {
 
+  digitalWrite(relay, HIGH);    // Make sure Door is Locked
+  
   for (int i=0;i<=ANZAHL_LEDS; i++) {
     if (i==MODE_LED) {
       setLED(0, 0, 255, MODE_LED);
@@ -70,21 +102,16 @@ void normalModeOn () {
     }
   }
   
-  digitalWrite(relay, HIGH);    // Make sure Door is Locked
 }
 
-
-//LED Playground
-/////////////////////////////////////////  Access Granted    ///////////////////////////////////
 void granted ( uint16_t setDelay) {
-  //setLED(0,255,0,2);
 
   ledPins[0]=0;
   ledPins[1]=1;
   ledPins[2]=1;
   ledPins[3]=0;
   
-  colorBlink(0, 255, 0, 2, ledPins, 200);
+  colorBlink(0, 255, 0, 2, 200);
   
   digitalWrite(relay, LOW);     // Unlock door!
   delay(setDelay);          // Hold door lock open for given seconds
@@ -92,7 +119,7 @@ void granted ( uint16_t setDelay) {
   delay(1000);            // Hold green LED on for a second
 }
 
-///////////////////////////////////////// Access Denied  ///////////////////////////////////
+
 void denied() {
 
   ledPins[0]=0;
@@ -100,15 +127,13 @@ void denied() {
   ledPins[2]=1;
   ledPins[3]=0;
   
-  colorBlink(255, 0, 0, 2, ledPins, 200);
+  colorBlink(255, 0, 0, 2, 200);
   
   delay(1000);
 }
 
 void setLED(int r, int g, int b, int num) {
 
-  //colorWipe(0,0,0, 5);
-  //delay(200);
   ledStrip.setPixelColor(num, ledStrip.Color(r,g,b)); // Moderately bright green color.
   ledStrip.show(); // This sends the updated pixel color t
   
@@ -128,7 +153,7 @@ void rainbowCycle(uint8_t wait) {
   }
 }
 
-// Fill the dots one after the other with a color
+
 void colorWipe(int r, int g, int b, uint8_t wait) {
   for(uint16_t i=0; i<ledStrip.numPixels(); i++) {
       if (i != CHANNEL_LED) {
@@ -138,16 +163,21 @@ void colorWipe(int r, int g, int b, uint8_t wait) {
       }
   }
 }
+
+
 void colorChannel() {
-  setLED(channel_r, channel_g, channel_b, CHANNEL_LED);
+  
+  setLED(channelColor[0], channelColor[1], channelColor[2], CHANNEL_LED);
   
 }
-void colorBlink(int r, int g, int b, int num, int pins[], uint8_t wait) {
+
+
+void colorBlink(int r, int g, int b, int num, uint8_t wait) {
 
   for (int i=0; i<num;i++) {
     for (int pin=0; pin<ANZAHL_LEDS;pin++) {
       
-      if (pins[pin]>0) {
+      if (ledPins[pin]>0) {
         setLED(r, g, b, pin);
         delay(wait);
       } 
@@ -158,17 +188,16 @@ void colorBlink(int r, int g, int b, int num, int pins[], uint8_t wait) {
     
     for (int pin=0; pin<ANZAHL_LEDS;pin++) {
 
-      if (pins[pin]>0) {
+      if (ledPins[pin]>0) {
         setLED(0, 0, 0, pin);
         delay(wait);
       } 
       
     }
-    
-    
 
   }
 }
+
 
 void rainbow(uint8_t wait) {
   uint16_t i, j;
