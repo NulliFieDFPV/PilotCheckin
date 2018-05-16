@@ -49,15 +49,9 @@ uint8_t getID() {
   return 1;
 }
 
-void setSlot(String newslot, int r, int g, int b) {
+void setSlot(String newslot) {
   slot=newslot;
-  //channel_r=r;
-  //channel_g=g;
-  //channel_b=b;
   //TODO LED anzeige, dass jetzt was geaendert wurde
-  channelColor[0]=r;
-  channelColor[1]=g;
-  channelColor[2]=b;
 
   Serial.println("");
   Serial.println(F("This Module is now connected as Slot:"));
@@ -65,6 +59,16 @@ void setSlot(String newslot, int r, int g, int b) {
   Serial.println("");
 
 }
+
+void setColor( int r, int g, int b) {
+  
+  channelColor[0]=r;
+  channelColor[1]=g;
+  channelColor[2]=b;
+  
+  //colorChannel();
+}
+
 
 void ShowReaderDetails() {
   // Get the MFRC522 software version

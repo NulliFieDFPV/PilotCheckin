@@ -180,7 +180,7 @@ void setup() {
   Serial.println(F("Everything is ready"));
   Serial.println(F("Waiting Pilot's Card to be scanned"));
   
-  rainbowCycle(5);    // Everything ready lets give user some feedback by cycling leds
+  rainbowCycle(2);    // Everything ready lets give user some feedback by cycling leds
 }
 
 

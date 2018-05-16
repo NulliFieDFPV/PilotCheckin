@@ -4,8 +4,8 @@ import serial
 import datetime
 
 from classes.classRace import cRace
-from classes.classHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV
-from classes.classHelper import COM_INFO_RSN, COM_INFO_SLT
+from classes.classHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV, COM_COMMAND_COL
+from classes.classHelper import COM_INFO_ACC, COM_INFO_SLT
 from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
 from classes.classNode import SlaveNode
 from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
@@ -72,7 +72,7 @@ class ioserver(object):
             for cid, channel in channels.items():
                 #Dem Modul den slot zuweisen
 
-                self.__nodes[channel.slot]=SlaveNode(cid, self.__q,self.__debugmode)
+                self.__nodes[channel.slot]=SlaveNode(cid, self.__raceid, self.__q,self.__debugmode)
                 if self.__nodes[channel.slot].connected:
                     self.__nodesAngemeldet =self.__nodesAngemeldet +1
 
@@ -124,11 +124,14 @@ class ioserver(object):
                 elif newcommand.commando == COM_COMMAND_CHK:
                     self.__command_CHK(newcommand.cardId, newcommand.slot)
 
+                elif newcommand.commando == COM_COMMAND_COL:
+                    self.__command_COL(newcommand.slot)
+
                 elif newcommand.commando == COM_COMMAND_WLK:
                     self.__command_WLK("0001")
 
                 elif newcommand.commando == COM_COMMAND_EXS:
-                    self.__command_EXS(newcommand.cardId, newcommand.reason, newcommand.slot)
+                    self.__command_EXS(newcommand.cardId, newcommand.accessory, newcommand.slot)
 
 
         else:
@@ -151,7 +154,20 @@ class ioserver(object):
             cardStatus="failed"
 
 
-        response = "RSP:EXS{}:SLT{}:STA{}:RSN{}:".format(cardId, cardSlot, cardStatus, cardReason)
+        response = "RSP:EXS{}:SLT{}:STA{}:ACC{}:".format(cardId, cardSlot, cardStatus, cardReason)
+
+        self.__sendToNode(response, cardSlot)
+
+        return returnStatus
+
+
+    def __command_COL(self, cardSlot):
+
+        returnStatus = True
+
+        channel=self.__getChannel(cardSlot)
+        color=str(channel.color[0]).rjust(3,"0") + "." + str(channel.color[1]).rjust(3,"0")  + "." + str(channel.color[2]).rjust(3,"0")
+        response = "RSP:SETcolor:SLT{}:STAok:ACC{}:".format(cardSlot, color)
 
         self.__sendToNode(response, cardSlot)
 
@@ -316,6 +332,16 @@ class ioserver(object):
         channelId = self.__race.getChannelId(slot)
 
         return channelId
+
+
+    def __getChannel(self, slot):
+
+        channelId = self.__race.getChannelId(slot)
+
+        channels =self.__race.channels()
+        channel=channels[channelId]
+
+        return channel
 
 
     def __setCheckIn(self, cardId, cardSlot):

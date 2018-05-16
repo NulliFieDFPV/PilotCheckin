@@ -8,7 +8,7 @@ void parseCommand(String mybuffer) {
   String cmdSlot="";
   String cmdStatus="";
   String cmdCard="";
-  String cmdReason="";
+  String cmdAccessory="";
   bool booResponse=false;
   
   for (int i = 0; i < intCount; i++)
@@ -61,8 +61,8 @@ void parseCommand(String mybuffer) {
       else if (cmdTmp=="STA") {
         cmdStatus=cmdTmpValue;
       }
-      else if (cmdTmp=="RSN") {
-        cmdReason=cmdTmpValue;
+      else if (cmdTmp=="ACC") {
+        cmdAccessory=cmdTmpValue;
       }
     }
       //Serial.println("--------------------");
@@ -85,23 +85,38 @@ void parseCommand(String mybuffer) {
     Serial.println(commando);
     Serial.println(cmdSlot);
     Serial.println(cmdStatus);
-    Serial.println(cmdReason);
+    Serial.println(cmdAccessory);
     Serial.println("--------------------");
     
     if (commando=="SET") {
       if (commandoValue=="slot") {
-        setSlot(cmdSlot, 100, 50, 180);
+        setSlot(cmdSlot);
+
+        Serial.print(F("ASK:COL:"));
+        Serial.print(F("SLT"));
+        Serial.print(slot);
+        
+        Serial.println(F(";"));
+      }
+      if (commandoValue=="color") {
+        int r= cmdAccessory.substring(0,3).toInt();
+        int g=cmdAccessory.substring(4,7).toInt();
+        int b=cmdAccessory.substring(8,10).toInt();   
+        //Serial.println(r);
+        //Serial.println(g);
+        //Serial.println(b);
+        setColor(r, g, b);
       }
     }
     else if (commando=="EXS") {
       if (cmdStatus=="ok") {
-        if (cmdReason=="delete") {
+        if (cmdAccessory=="delete") {
           Serial.println(F("Removing Pilot's Card..."));
           //Machen wir das hier überhaupt noch??
           //deleteID(cmdCard);
           Serial.println("-----------------------------");
         }
-        if (cmdReason=="add") {
+        if (cmdAccessory=="add") {
           Serial.println(F("Adding Pilot's Card..."));
           //Machen wir das hier überhaupt noch??
           //writeID(cmdCard);
