@@ -41,16 +41,13 @@ bool programMode = false;  // initialize programming mode to false
 
 uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reader
 String slot="0000"; 
-uint8_t checkin;
-int incomingByte=0;
 
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte masterCard[4];   // Stores master card's ID read from EEPROM
 
-//Buffer für den Parser, hier kommen die Chars aus dem Pi rein
-int intCount=0;
 char mybuffer[64];
-
+int buffercount=0;
+  
 //global verfügbare channel-farbe   
 int channelColor[3]={0, 0, 0};
 
@@ -62,13 +59,14 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 Adafruit_NeoPixel ledStrip = Adafruit_NeoPixel(30, ledpin, NEO_GRB + NEO_KHZ800);
 
+
 ///////////////////////////////////////// Setup ///////////////////////////////////
 void setup() {
   
   //Arduino Pin Configuration
   ledStrip.begin();
   
-  pinMode(wipeB, INPUT_PULLUP);   // Enable pin's pull up resistor
+  pinMode(wipeB, INPUT);   // Enable pin's pull up resistor
   pinMode(relay, OUTPUT);
   //Be careful how relay circuit behave on while resetting or power-cycling your Arduino
   digitalWrite(relay, HIGH);    // Make sure door is locked
@@ -78,7 +76,7 @@ void setup() {
   colorWipe(0,0,0,5);
 
   //Channelfarbe setzen (sollte jetzt noch schwarz sein)
-  colorChannel();
+  showColorChannel();
   
   //Protocol Configuration
   Serial.begin(9600);  // Initialize serial communications with PC
@@ -91,68 +89,8 @@ void setup() {
   Serial.println(F("Pilot Access Control v0.1"));   // For debugging purposes
   ShowReaderDetails();  // Show details of PCD - MFRC522 Card Reader details
 
-
-
-  //Wipe Code - If the Button (wipeB) Pressed while setup run (powered on) it wipes EEPROM
-  if (digitalRead(wipeB) == LOW) {  // when button pressed pin should get low, button connected to ground
-    
-    //digitalWrite(redLed, LED_ON); // Red Led stays on to inform user we are going to wipe
-    //TODO
-    setLED(255,0,0,3);
-    Serial.println(F("Wipe Button Pressed"));
-    Serial.println(F("You have 10 seconds to Cancel"));
-    Serial.println(F("This will be remove all records and cannot be undone"));
-    bool buttonState = monitorWipeButton(10000); // Give user enough time to cancel operation
-    if (buttonState == true && digitalRead(wipeB) == LOW) {    // If button still be pressed, wipe EEPROM
-      Serial.println(F("Starting Wiping EEPROM"));
-      for (uint16_t x = 0; x < EEPROM.length(); x = x + 1) {    //Loop end of EEPROM address
-        if (EEPROM.read(x) == 0) {              //If EEPROM address 0
-          // do nothing, already clear, go to the next address in order to save time and reduce writes to EEPROM
-        }
-        else {
-          EEPROM.write(x, 0);       // if not write 0 to clear, it takes 3.3mS
-        }
-      }
-      Serial.println(F("EEPROM Successfully Wiped"));
-      rainbowCycle(1);
-      
-    }
-    else {
-      Serial.println(F("Wiping Cancelled")); // Show some feedback that the wipe button did not pressed for 15 seconds
-      //digitalWrite(redLed, LED_OFF);
-      //TODO, farbe setzen?
-      failedWrite();
-    }
-  }
-
+  checkWipe();
   
-  // Check if master card defined, if not let user choose a master card
-  // This also useful to just redefine the Master Card
-  // You can keep other EEPROM records just write other than 143 to EEPROM address 1
-  // EEPROM address 1 should hold magical number which is '143'
-  if (EEPROM.read(1) != 143) {
-    Serial.println(F("No Master Card defined"));
-    Serial.println(F("Scan A Pilot's Card to define as Master Card"));
-
-    
-    do {
-      successRead = getID();            // sets successRead to 1 when we get read from reader otherwise 0
-      rainbow(1);
-      delay(200);
-    }
-    while (!successRead);                  // Program will not go further while you not get a successful read
-
-
-    
-    for ( uint8_t j = 0; j < 4; j++ ) {        // Loop 4 times
-      EEPROM.write( 2 + j, readCard[j] );  // Write scanned PICC's UID to EEPROM, start from address 3
-    }
-    EEPROM.write(1, 143);                  // Write to EEPROM we defined Master Card.
-    Serial.println(F("Master Card Defined"));
-
-    
-  }
-
   
   Serial.println(F("-------------------"));
   Serial.println(F("Master Card's UID"));
@@ -161,7 +99,6 @@ void setup() {
     Serial.print(masterCard[i], HEX);
   }
 
-    
   Serial.println("");
   Serial.println(F("This Module is connected as Slot:"));
   Serial.print(slot);
@@ -178,9 +115,9 @@ void setup() {
   
   Serial.println(F("-------------------"));
   Serial.println(F("Everything is ready"));
-  Serial.println(F("Waiting Pilot's Card to be scanned"));
+  //Serial.println(F("Waiting Pilot's Card to be scanned"));
   
-  rainbowCycle(2);    // Everything ready lets give user some feedback by cycling leds
+  rainbowCycle(1);    // Everything ready lets give user some feedback by cycling leds
 }
 
 
@@ -190,36 +127,16 @@ void setup() {
 ///////////////////////////////////////// Main Loop ///////////////////////////////////
 void loop () {
 
-
+  Serial.println(F("Waiting Pilot's Card to be scanned"));
   //Hauptschleife, zuerst RFID auslesen, dann Pi
   do {
+
+    showColorChannel();
+    checkWipe();
     
     successRead = getID();  // sets successRead to 1 when we get read from reader otherwise 0
-    colorChannel();
-
-    ////////////////// Master Card Wipe ////////////////////////////////////////////////
-    // When device is in use if wipe button pressed for 10 seconds initialize Master Card wiping
-    if (digitalRead(wipeB) == LOW) { // Check if button is pressed
-
-      //TODO, was leuchtet nun wie?
-      setLED(255,0,0,3);
-      
-      // Give some feedback
-      Serial.println(F("Wipe Button Pressed"));
-      Serial.println(F("Master Card will be Erased! in 10 seconds"));
-      bool buttonState = monitorWipeButton(10000); // Give user enough time to cancel operation
-      
-      if (buttonState == true && digitalRead(wipeB) == LOW) {    // If button still be pressed, wipe EEPROM
-        EEPROM.write(1, 0);                  // Reset Magic Number.
-        Serial.println(F("Master Card Erased from device"));
-        Serial.println(F("Please reset to re-program Master Card"));
-        while (1);
-      }
-      
-      Serial.println(F("Master Card Erase Cancelled"));
-    }
-
-
+    
+    
     //Anzeige, ob im Program Mode, oder normalen Mode
     if (programMode) {
       programModeOn();              // Program Mode cycles through Red Green Blue waiting to read a new card
@@ -228,37 +145,19 @@ void loop () {
       normalModeOn();     // Normal mode, blue Power LED is on, all others are off
     }
 
-    //wenn ein Befehl vom Pi kommt
-    do {
-      if (Serial.available()>0) {
-        char myread=Serial.read();
-  
-        if (String(myread)==";") {
-          //verarbeiten  
-          //Serial.println(F("PArsing..."));
-          parseCommand(mybuffer); 
-          
-          resetBuffer();
-        }
-        else {
-          mybuffer[intCount++]=myread;
-        }
-
-      }  
-    }      
-    while (Serial.available()>0);
-
-    //resetBuffer();
+    readMaster();
     
   }
   while (!successRead);   //the program will not go further while you are not getting a successful read
 
+
+
   //So, jetzt ist ne Karte gescannt worden
   //mal gucken, was da so geht
   //Blitzer, wenn ein loop durch ist (wird nach read() weiter laufen
-  cardScanned();
+  showCardScanned();
 
-  colorChannel();
+  showColorChannel();
   
   //********** Program Mode **********
   if (programMode) {
@@ -280,7 +179,7 @@ void loop () {
 
   }
 
-  //********** Normalmode Mode **********
+  //********** Normal Mode **********
   else {
     if ( isMaster(readCard)) {    
       // Wenn es die Master Card ist - Program Mode starten
@@ -298,5 +197,6 @@ void loop () {
   }
 
 }
+
 
 

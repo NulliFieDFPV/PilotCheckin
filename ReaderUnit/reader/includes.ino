@@ -17,15 +17,6 @@ for (int y = 0, x = 0; y < 4; ++y, ++x)
 }
 
 
-void resetBuffer() {
-  for (int i = 0; i < intCount; i++)
-  {
-      mybuffer[i] = NULL;
-  }
-  intCount=0;
-}
-
-
 //Functions
 ///////////////////////////////////////// Get PICC's UID ///////////////////////////////////
 uint8_t getID() {
@@ -150,11 +141,71 @@ bool monitorWipeButton(uint32_t interval) {
   while ((uint32_t)millis() - now < interval)  {
     // check on every half a second
     if (((uint32_t)millis() % 500) == 0) {
-      if (digitalRead(wipeB) != LOW)
+      if (digitalRead(wipeB) != HIGH)
         return false;
     }
   }
   return true;
+}
+
+////////////////// Master Card Wipe ////////////////////////////////////////////////
+// When device is in use if wipe button pressed for 10 seconds initialize Master Card wiping
+bool checkWipe() {
+
+  bool resetted=false;
+  
+  // When device is in use if wipe button pressed for 10 seconds initialize Master Card wiping
+  if (digitalRead(wipeB) == HIGH) { // Check if button is pressed
+
+    //TODO, was leuchtet nun wie?
+    setLED(255,0,0,3);
+    setLED(255,0,0,2);
+    setLED(255,0,0,1);
+    
+    // Give some feedback
+    Serial.println(F("Wipe Button Pressed"));
+    Serial.println(F("Master Card will be Erased! in 10 seconds"));
+    bool buttonState = monitorWipeButton(10000); // Give user enough time to cancel operation
+    
+    if (buttonState == true && digitalRead(wipeB) == HIGH) {    // If button still be pressed, wipe EEPROM
+
+      EEPROM.write(1, 0);                  // Reset Magic Number.
+      Serial.println(F("Master Card Erased from device"));
+      //while (1);
+      resetted=true;
+    }
+    else {
+      Serial.println(F("Master Card Erase Cancelled"));
+    }
+  }
+
+
+  if (EEPROM.read(1) != 143) {
+    Serial.println(F("No Master Card defined"));
+    Serial.println(F("Scan A Pilot's Card to define as Master Card"));
+    
+    do {
+      successRead = getID();            // sets successRead to 1 when we get read from reader otherwise 0
+      rainbow(1);
+      delay(200);
+    }
+    while (!successRead);                  // Program will not go further while you not get a successful read
+
+    showCardScanned();
+    
+    for ( uint8_t j = 0; j < 4; j++ ) {        // Loop 4 times
+      EEPROM.write( 2 + j, readCard[j] );  // Write scanned PICC's UID to EEPROM, start from address 3
+    }
+    EEPROM.write(1, 143);                  // Write to EEPROM we defined Master Card.
+    Serial.println(F("Master Card Defined"));
+    Serial.println(F("Waiting Pilot's Card to be scanned"));
+    successRead=0;
+
+    
+  }
+
+  return resetted;
+  
 }
 
 
@@ -175,3 +226,41 @@ bool findID( byte a[] ,String reason) {
   return false;
 }
 
+
+void readMaster() {
+
+  bool success=false;
+  //Buffer für den Parser, hier kommen die Chars aus dem Pi rein
+
+
+  
+  //wenn ein Befehl vom Pi kommt
+  do {
+    if (Serial.available()>0) {
+      char myread=Serial.read();
+
+      if (String(myread)==";") {
+        //verarbeiten  
+        //Serial.println(F("PArsing..."));
+        parseCommand(); 
+        
+        for (int i = 0; i < buffercount; i++)
+        {
+            mybuffer[i] = NULL;
+        }
+        buffercount=0;
+        
+        success=true;
+        
+      }
+      else {
+        mybuffer[buffercount++]=myread;
+      }
+
+    }  
+  }      
+  while (Serial.available()>0);
+
+  return success;
+  
+}

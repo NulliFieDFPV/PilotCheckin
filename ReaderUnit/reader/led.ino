@@ -16,7 +16,7 @@ void successWrite() {
 
 }
 
-void cardScanned() {
+void showCardScanned() {
   
   ledPins[0]=1;
   ledPins[1]=1;
@@ -165,7 +165,7 @@ void colorWipe(int r, int g, int b, uint8_t wait) {
 }
 
 
-void colorChannel() {
+void showColorChannel() {
   
   setLED(channelColor[0], channelColor[1], channelColor[2], CHANNEL_LED);
   

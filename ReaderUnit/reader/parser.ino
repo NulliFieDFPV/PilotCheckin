@@ -1,4 +1,4 @@
-void parseCommand(String mybuffer) {
+void parseCommand() {
   
   String msg="";
   String cmdTmp="";
@@ -11,7 +11,7 @@ void parseCommand(String mybuffer) {
   String cmdAccessory="";
   bool booResponse=false;
   
-  for (int i = 0; i < intCount; i++)
+  for (int i = 0; i < buffercount; i++)
   {
     //Serial.println(mybuffer[i]);
     //Serial.println(i);
