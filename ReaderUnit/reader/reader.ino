@@ -26,7 +26,7 @@
 constexpr uint8_t ANZAHL_LEDS =4;
 constexpr uint8_t CHANNEL_LED =3;
 constexpr uint8_t MODE_LED=0;
-constexpr uint8_t BUZZER_PIN = 4;     // Set Relay Pin
+constexpr uint8_t BUZZER_PIN = 5;     // Set Relay Pin
 constexpr uint8_t wipeB = 3;     // Button pin for WipeMode
 constexpr uint8_t ledpin = 2;     // WS2812 Pin
 constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above

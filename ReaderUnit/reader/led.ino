@@ -1,8 +1,8 @@
 
 int ledPins[ANZAHL_LEDS];
-int LONGBEEP=600;
-int SHORTBEEP=200;
-int BEEPINGWAIT=500;
+int LONGBEEP=300;
+int SHORTBEEP=100;
+int BEEPINGWAIT=100;
 
 //global verfügbare channel-farbe   
 int channelColor[3]={0, 0, 0};
