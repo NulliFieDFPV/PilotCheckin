@@ -135,7 +135,7 @@ void parseCommand() {
         Serial.print(F(" Checked In At "));
         Serial.println(cmdSlot);
         
-        granted(300);
+        granted();
      
       }
       else if (cmdStatus=="failed") {
