@@ -47,6 +47,8 @@ byte masterCard[4];   // Stores master card's ID read from EEPROM
 
 char mybuffer[64];
 int buffercount=0;
+
+
   
 //global verfügbare channel-farbe   
 int channelColor[3]={0, 0, 0};
