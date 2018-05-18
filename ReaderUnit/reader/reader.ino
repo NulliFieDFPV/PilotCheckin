@@ -21,21 +21,16 @@
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
 #include <Adafruit_NeoPixel.h>
 
-/*
-  Instead of a Relay you may want to use a servo. Servos can lock and unlock door locks too
-  Relay will be used by default
-*/
-
-// #include <Servo.h>
-
 
 #define COMMON_ANODE
 constexpr uint8_t ANZAHL_LEDS =4;
 constexpr uint8_t CHANNEL_LED =3;
 constexpr uint8_t MODE_LED=0;
-constexpr uint8_t relay = 4;     // Set Relay Pin
+constexpr uint8_t BUZZER_PIN = 5;     // Set Relay Pin
 constexpr uint8_t wipeB = 3;     // Button pin for WipeMode
 constexpr uint8_t ledpin = 2;     // WS2812 Pin
+constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
+constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
 
 bool programMode = false;  // initialize programming mode to false
 
@@ -45,31 +40,18 @@ String slot="0000";
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte masterCard[4];   // Stores master card's ID read from EEPROM
 
-char mybuffer[64];
-int buffercount=0;
-  
-//global verfügbare channel-farbe   
-int channelColor[3]={0, 0, 0};
-
-// Create MFRC522 instance.
-constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
-constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
-
-Adafruit_NeoPixel ledStrip = Adafruit_NeoPixel(30, ledpin, NEO_GRB + NEO_KHZ800);
 
 
 ///////////////////////////////////////// Setup ///////////////////////////////////
 void setup() {
   
   //Arduino Pin Configuration
-  ledStrip.begin();
-  
+  setupLed();
+
   pinMode(wipeB, INPUT);   // Enable pin's pull up resistor
-  pinMode(relay, OUTPUT);
-  //Be careful how relay circuit behave on while resetting or power-cycling your Arduino
-  digitalWrite(relay, HIGH);    // Make sure door is locked
+  setupBuzzer();
 
 
   //LEDs zurücksetzen
