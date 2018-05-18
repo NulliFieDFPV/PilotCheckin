@@ -6,7 +6,7 @@ import datetime
 from classes.classRace import cChannel
 from classes.classHelper import cCommando
 from classes.classHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV
-from classes.classHelper import COM_INFO_RSN, COM_INFO_SLT, COM_INFO_RSP
+from classes.classHelper import COM_INFO_ACC, COM_INFO_SLT, COM_INFO_RSP
 from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
 
 from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
@@ -20,9 +20,9 @@ import threading
 class SlaveNode(cChannel):
 
 
-    def __init__(self, cid,queue, debugmode=False):
+    def __init__(self, cid, rid, queue, debugmode=False):
 
-        cChannel.__init__(self, cid)
+        cChannel.__init__(self, cid, rid)
         self.__active=True
         self.__con =None
         self.__debugmode=debugmode
@@ -30,7 +30,10 @@ class SlaveNode(cChannel):
         self.__msg_temp=""
 
         if self.port !="":
-            self.__con= serial.Serial(self.port, 9600, timeout=5)
+            try:
+                self.__con= serial.Serial(self.port, 9600, timeout=5)
+            except:
+                pass
 
         self.__thListen=threading.Thread(target=self.__listenToNode,args=())
         self.__thListen.start()
@@ -56,6 +59,7 @@ class SlaveNode(cChannel):
                         if message[-1:]==";":
                             #Hier jetzt irgenwat machen
                             newcommand=self.__parseCommand(message.replace(";", ""))
+                            newcommand.cid=self.channelid
                             self.__queue.put(newcommand)
 
                             self.__msg_temp=""

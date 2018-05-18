@@ -1,6 +1,8 @@
 An der ReaderUnit gibt es 4 LEDs zur visuellen Signalgebung
 
+
 Channel-Farbe: LED 4
+
 
 Regenbogen durch LED 1-4: booting
 

@@ -6,6 +6,9 @@ Trenner:
   :
 
 Funktionen:
+  SET
+    Werte:
+      slot, color
   RST
     Werte:
       UID der Karte
@@ -31,7 +34,11 @@ Status:
       noatt
       nochan
       notreg
-
+      
+Zusatz:
+  ACC
+    Werte: delete, add, Farbe(000.000.000)
+    
 Abschluss:
   ;
   
@@ -47,6 +54,9 @@ Funktionen:
   WLK
     Werte:
       Slot des Arduinos
+  COL
+    Werte:
+      leer
   RST
     Werte:
       UID der Karte
@@ -64,7 +74,7 @@ Funktionen:
       UID der Karte
 
 Sonstiges:
-  RSN
+  ACC
     Werte:
       delete, add
       
