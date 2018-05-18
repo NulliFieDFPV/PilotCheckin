@@ -7,10 +7,11 @@ COM_COMMAND_RMV = "RMV"
 COM_COMMAND_WLK = "WLK"
 COM_COMMAND_ADD = "ADD"
 COM_COMMAND_EXS = "EXS"
-
+COM_COMMAND_COL="COL"
 COM_COMMAND_CHK = "CHK"
 COM_INFO_SLT = "SLT"
-COM_INFO_RSN = "RSN"
+COM_INFO_RSP = "RSP"
+COM_INFO_ACC = "ACC"
 
 TYPE_OUT = "[OUT]"
 TYPE_CMD = "[CMD]"
@@ -48,8 +49,8 @@ class cCommando(object):
         self.slot=""
         self.slotBefore = ""
         self.cardId=""
-        self.reason=""
-
+        self.accessory=""
+        self.cid = 0
         self.__lCommandos = commandos
 
         self.__verarbeiteListe()
@@ -74,6 +75,10 @@ class cCommando(object):
                 self.cardId = cmd[3:]
                 self.commando = cmdTmp
 
+            elif cmdTmp == COM_COMMAND_COL:
+                #self.slot =cmd[3:]
+                self.commando = cmdTmp
+
             elif cmdTmp == COM_COMMAND_WLK:
                 self.slotBefore = cmd[3:]
                 self.slot =self.slotBefore
@@ -89,8 +94,8 @@ class cCommando(object):
                 self.cardId = cmd[3:]
                 self.commando = cmdTmp
 
-            elif cmdTmp == COM_INFO_RSN:
-                self.reason = cmd[3:]
+            elif cmdTmp == COM_INFO_ACC:
+                self.accessory = cmd[3:]
 
             elif cmdTmp == COM_COMMAND_CHK:
                 self.cardId = cmd[3:]
@@ -110,6 +115,10 @@ class cCommando(object):
 
         if self.commando == COM_COMMAND_RMV or self.commando == COM_COMMAND_ADD or self.commando == COM_COMMAND_CHK:
             if self.cardId <> "" and self.slot <> "":
+                return True
+
+        elif self.commando==COM_COMMAND_COL:
+            if self.slot<>"":
                 return True
 
         elif self.commando == COM_COMMAND_EXS:

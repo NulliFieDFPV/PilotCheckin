@@ -6,7 +6,8 @@ import time
 
 class cChannel(object):
 
-    def __init__(self, cid):
+    def __init__(self, cid, rid):
+        self.__rid=rid
         self.__cid=cid
         self.__channelname = ""
         self.__channel = 0
@@ -15,8 +16,30 @@ class cChannel(object):
         self.__slot="0000"
         self.__port =""
         self.__typ=""
+        self.__r="0"
+        self.__g="0"
+        self.__b="0"
 
         self.__getData()
+        self.__getRaceInfos()
+
+
+
+    def __getRaceInfos(self):
+
+        mydb = db()
+        sql = "SELECT * FROM {0} WHERE ACCID={1} AND RID={2} ".format(sqltbl["raceoptions"], self.__cid, self.__rid)
+        sql = sql + "AND option_name IN ('colorRed','colorGreen', 'colorBlue') "
+        sql = sql + "AND status=-1;"
+        result = mydb.query(sql)
+
+        for row in result:
+            if row["option_name"]=="colorRed":
+                self.__r = row["option_value"]
+            elif row["option_name"]=="colorGreen":
+                self.__g = row["option_value"]
+            elif row["option_name"]=="colorBlue":
+                self.__b = row["option_value"]
 
 
     def __getData(self):
@@ -73,6 +96,10 @@ class cChannel(object):
         return self.__channel
 
     @property
+    def channelid(self):
+        return self.__cid
+
+    @property
     def band(self):
         return self.__band
 
@@ -87,6 +114,10 @@ class cChannel(object):
     @property
     def port(self):
         return self.__port
+
+    @property
+    def color(self):
+        return [self.__r, self.__g, self.__b]
 
     @property
     def typ(self):
@@ -144,7 +175,7 @@ class cRace(object):
         result = mydb.query(sql)
 
         for row in result:
-            channels[row["option_value"]]=cChannel(row["option_value"])
+            channels[row["option_value"]]=cChannel(row["option_value"], self.__rid)
 
         return channels
 
@@ -183,7 +214,7 @@ class cRace(object):
         mydb = db()
         sql = "SELECT * FROM {} WHERE ".format(sqltbl["rfid"])
         sql = sql + "UID='{}' ".format(cardId)
-        sql = sql + "AND status <> 0 "
+        #sql = sql + "AND status <> 0 "
         result=mydb.query(sql)
 
         if len(result)==0:
