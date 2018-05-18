@@ -1,4 +1,7 @@
 
+char mybuffer[64];
+int buffercount=0;
+
 
 String CreateHexString(byte data[]) {
 
@@ -51,14 +54,7 @@ void setSlot(String newslot) {
 
 }
 
-void setColor( int r, int g, int b) {
-  
-  channelColor[0]=r;
-  channelColor[1]=g;
-  channelColor[2]=b;
-  
-  //colorChannel();
-}
+
 
 
 void ShowReaderDetails() {

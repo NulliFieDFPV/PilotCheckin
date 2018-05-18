@@ -1,9 +1,23 @@
 
-
 int ledPins[ANZAHL_LEDS];
 int LONGBEEP=600;
 int SHORTBEEP=200;
 int BEEPINGWAIT=500;
+
+//global verfügbare channel-farbe   
+int channelColor[3]={0, 0, 0};
+
+Adafruit_NeoPixel ledStrip = Adafruit_NeoPixel(30, ledpin, NEO_GRB + NEO_KHZ800);
+
+bool setupLed() {
+  
+  bool rstatus=true;
+
+  ledStrip.begin();
+
+  return rstatus;
+  
+}
 
 
 void successWrite() {
@@ -100,7 +114,7 @@ void programModeOn () {
 
 void normalModeOn () {
 
-  digitalWrite(relay, HIGH);    // Make sure Door is Locked
+  digitalWrite(BUZZER_PIN, HIGH);    // Make sure Door is Locked
   
   for (int i=0;i<=ANZAHL_LEDS; i++) {
     if (i==MODE_LED) {
@@ -158,6 +172,14 @@ void showColorChannel() {
   
 }
 
+void setColor( int r, int g, int b) {
+  
+  channelColor[0]=r;
+  channelColor[1]=g;
+  channelColor[2]=b;
+  
+  //colorChannel();
+}
 
 
 void colorBlink(int r, int g, int b, int num, uint8_t wait) {
