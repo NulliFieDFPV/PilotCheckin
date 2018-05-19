@@ -128,7 +128,7 @@ class ioserver(object):
                     self.__command_COL(newcommand.slot)
 
                 elif newcommand.commando == COM_COMMAND_WLK:
-                    self.__command_WLK("0001")
+                    self.__command_WLK(newcommand.cid)
 
                 elif newcommand.commando == COM_COMMAND_EXS:
                     self.__command_EXS(newcommand.cardId, newcommand.accessory, newcommand.slot)
@@ -174,9 +174,17 @@ class ioserver(object):
         return returnStatus
 
 
-    def __command_WLK(self, cardSlot):
+    def __command_WLK(self, channelId):
 
         returnStatus = True
+        cardSlot="00X"
+
+        if channelId>0:
+            channels= self.__race.channels(True)
+
+            channel=channels[channelId]
+            cardSlot=channel.slot
+
 
         response = "RSP:SETslot:SLT{}:STAok:".format(cardSlot)
 

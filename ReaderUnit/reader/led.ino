@@ -1,22 +1,43 @@
-
+#include <Adafruit_NeoPixel.h>
 
 int ledPins[ANZAHL_LEDS];
+int LONGBEEP=300;
+int SHORTBEEP=100;
+int BEEPINGWAIT=100;
+int SHORTBEEPINGWAIT=20;
+
+//global verfügbare channel-farbe   
+int channelColor[3]={0, 0, 0};
+
+Adafruit_NeoPixel ledStrip = Adafruit_NeoPixel(30, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+
+bool setupLed() {
+  
+  bool rstatus=true;
+
+  ledStrip.begin();
+
+  return rstatus;
+  
+}
 
 
 void successWrite() {
-  //TODO
-  colorWipe(0,0,0, 5);
-  delay(200);
   
-  colorWipe(0,0,255, 5);
-  delay(200);
+  ledPins[0]=1;
+  ledPins[1]=1;
+  ledPins[2]=1;
+  ledPins[3]=0;
   
-  colorWipe(0,0,0, 5);
-  delay(200);
-
+  colorBlink(0, 0, 255, 3, 30);
+  
+  beep(LONGBEEP, 3, BEEPINGWAIT);
+  
 }
 
-void cardScanned() {
+
+void showCardScanned() {
   
   ledPins[0]=1;
   ledPins[1]=1;
@@ -24,19 +45,24 @@ void cardScanned() {
   ledPins[3]=0;
   
   colorBlink(255, 132, 12, 1, 50);
+
+  beep(SHORTBEEP, 1);
   
 }
 
-void failedWrite() {
-  //TODO
-  colorWipe(0,0,0, 5);
-  delay(200);
-  colorWipe(255,0,0, 5);
-  delay(200);
-  colorWipe(0,0,0, 5);
-  delay(200);
 
+void failedWrite() {
+  
+  ledPins[0]=1;
+  ledPins[1]=1;
+  ledPins[2]=1;
+  ledPins[3]=0;
+  
+  colorBlink(255, 0, 0, 3, 30);
+
+  beep(SHORTBEEP, 3, BEEPINGWAIT);
 }
+
 
 void successReset() {
 
@@ -45,11 +71,31 @@ void successReset() {
   ledPins[2]=1;
   ledPins[3]=0;
   
-  colorBlink(5, 6, 5, 1, 400);
+  colorBlink(5, 6, 100, 1, 400);
   
-  delay(1000);
+  delay(400);
   
 }
+
+void showInitial() {
+  
+  ledPins[0]=1;
+  ledPins[1]=1;
+  ledPins[2]=1;
+  ledPins[3]=1;
+  
+  colorBlink(255, 208, 0, 1, 80);
+
+  beep(SHORTBEEP, 3, SHORTBEEPINGWAIT);
+
+  colorBlink(255, 208, 0, 1, 80);
+
+  beep(LONGBEEP, 3, BEEPINGWAIT);
+
+  delay(400);
+  
+}
+
 
 void programModeOn () {
   
@@ -91,7 +137,7 @@ void programModeOn () {
 
 void normalModeOn () {
 
-  digitalWrite(relay, HIGH);    // Make sure Door is Locked
+  digitalWrite(BUZZER_PIN, HIGH);    // Make sure Door is Locked
   
   for (int i=0;i<=ANZAHL_LEDS; i++) {
     if (i==MODE_LED) {
@@ -104,7 +150,8 @@ void normalModeOn () {
   
 }
 
-void granted ( uint16_t setDelay) {
+
+void granted() {
 
   ledPins[0]=0;
   ledPins[1]=1;
@@ -112,11 +159,14 @@ void granted ( uint16_t setDelay) {
   ledPins[3]=0;
   
   colorBlink(0, 255, 0, 2, 200);
+
+  beep(LONGBEEP, 2, BEEPINGWAIT);
   
-  digitalWrite(relay, LOW);     // Unlock door!
-  delay(setDelay);          // Hold door lock open for given seconds
-  digitalWrite(relay, HIGH);    // Relock door
-  delay(1000);            // Hold green LED on for a second
+  setLED(0, 255, 0, 1);
+  setLED(0, 255, 0, 2);
+  
+  delay(1000);          
+  
 }
 
 
@@ -129,9 +179,65 @@ void denied() {
   
   colorBlink(255, 0, 0, 2, 200);
   
+  beep(SHORTBEEP, 3, BEEPINGWAIT);
+
+  setLED(255, 0, 0, 1);
+  setLED(255, 0, 0, 2);
+  
   delay(1000);
+  
 }
 
+
+void showColorChannel() {
+  
+  setLED(channelColor[0], channelColor[1], channelColor[2], CHANNEL_LED);
+  
+}
+
+void setColor( int r, int g, int b) {
+  
+  channelColor[0]=r;
+  channelColor[1]=g;
+  channelColor[2]=b;
+  
+  //colorChannel();
+}
+
+
+void colorBlink(int r, int g, int b, int num, uint8_t wait) {
+
+  for (int i=0; i<num;i++) {
+    for (int pin=0; pin<ANZAHL_LEDS;pin++) {
+      
+      if (ledPins[pin]>0) {
+        setLED(r, g, b, pin);
+        delay(wait);
+      } 
+      
+    }
+    
+    delay(wait);
+    
+    for (int pin=0; pin<ANZAHL_LEDS;pin++) {
+
+      if (ledPins[pin]>0) {
+        setLED(0, 0, 0, pin);
+        delay(wait);
+      } 
+      
+    }
+
+  }
+}
+
+
+
+
+
+
+/////////// Ab hier wird mit dem ledStrip-Treiber gesprochen //////////////////////////////////////////////////////
+  
 void setLED(int r, int g, int b, int num) {
 
   ledStrip.setPixelColor(num, ledStrip.Color(r,g,b)); // Moderately bright green color.
@@ -164,39 +270,6 @@ void colorWipe(int r, int g, int b, uint8_t wait) {
   }
 }
 
-
-void colorChannel() {
-  
-  setLED(channelColor[0], channelColor[1], channelColor[2], CHANNEL_LED);
-  
-}
-
-
-void colorBlink(int r, int g, int b, int num, uint8_t wait) {
-
-  for (int i=0; i<num;i++) {
-    for (int pin=0; pin<ANZAHL_LEDS;pin++) {
-      
-      if (ledPins[pin]>0) {
-        setLED(r, g, b, pin);
-        delay(wait);
-      } 
-      
-    }
-    
-    delay(wait);
-    
-    for (int pin=0; pin<ANZAHL_LEDS;pin++) {
-
-      if (ledPins[pin]>0) {
-        setLED(0, 0, 0, pin);
-        delay(wait);
-      } 
-      
-    }
-
-  }
-}
 
 
 void rainbow(uint8_t wait) {

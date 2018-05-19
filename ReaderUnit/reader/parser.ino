@@ -1,4 +1,4 @@
-void parseCommand(String mybuffer) {
+void parseCommand() {
   
   String msg="";
   String cmdTmp="";
@@ -11,7 +11,7 @@ void parseCommand(String mybuffer) {
   String cmdAccessory="";
   bool booResponse=false;
   
-  for (int i = 0; i < intCount; i++)
+  for (int i = 0; i < buffercount; i++)
   {
     //Serial.println(mybuffer[i]);
     //Serial.println(i);
@@ -94,7 +94,7 @@ void parseCommand(String mybuffer) {
 
         Serial.print(F("ASK:COL:"));
         Serial.print(F("SLT"));
-        Serial.print(slot);
+        Serial.print(cmdSlot);
         
         Serial.println(F(";"));
       }
@@ -135,7 +135,7 @@ void parseCommand(String mybuffer) {
         Serial.print(F(" Checked In At "));
         Serial.println(cmdSlot);
         
-        granted(300);
+        granted();
      
       }
       else if (cmdStatus=="failed") {

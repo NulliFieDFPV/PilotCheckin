@@ -23,13 +23,27 @@ class SlaveNode(cChannel):
     def __init__(self, cid, rid, queue, debugmode=False):
 
         cChannel.__init__(self, cid, rid)
+
         self.__active=True
         self.__con =None
         self.__debugmode=debugmode
         self.__queue=queue
         self.__msg_temp=""
+
         if self.port !="":
-            self.__con= serial.Serial(self.port, 9600, timeout=5)
+            if self.typ=="usb":
+                try:
+                    self.__con= serial.Serial(self.port, 9600, timeout=5)
+                except:
+                    pass
+
+            elif self.typ=="i2c":
+                try:
+                    pass
+                    # self.__con=i2c connector
+                except:
+                    pass
+
 
         self.__thListen=threading.Thread(target=self.__listenToNode,args=())
         self.__thListen.start()
