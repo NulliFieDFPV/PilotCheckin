@@ -17,14 +17,13 @@
 */
 
 #include <EEPROM.h>     // We are going to read and write PICC's UIDs from/to EEPROM
-#include <SPI.h>        // RC522 Module uses SPI protocol
-#include <MFRC522.h>  // Library for Mifare RC522 Devices
 
 #define COMMON_ANODE
 constexpr uint8_t ANZAHL_LEDS =4;
 constexpr uint8_t CHANNEL_LED =3;
 constexpr uint8_t MODE_LED=0;
 
+constexpr uint8_t I2C_ADDR=44;
 
 constexpr uint8_t BUZZER_PIN = 5;     // Set Relay Pin
 constexpr uint8_t WIPEBUTTON_PIN = 3;     // Button pin for WipeMode
@@ -36,14 +35,17 @@ constexpr uint8_t CONNECTION_MODE = 1;
 // =2 I2C
 // =3 I2C + Serial
 
+constexpr uint8_t SDA_PIN = 7; 
+constexpr uint8_t SCL_PIN = 6; 
+
+char mybuffer[64];
+int buffercount=0;
+
 bool programMode = false;  // initialize programming mode to false
 constexpr char INFOLINE[29] = "----------------------------";
 
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte masterCard[4];   // Stores master card's ID read from EEPROM
-
-
-MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 
 ///////////////////////////////////////// Setup ///////////////////////////////////
@@ -74,13 +76,9 @@ void setup() {
     setupI2C();
   }
 
-
-  SPI.begin();           // MFRC522 Hardware uses SPI protocol
-  mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
+  setupMfrc();
 
 
-  //If you set Antenna Gain to Max it will increase reading distance
-  //mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max);
   
   sendInfoToMaster("Pilot Access Control v0.1");
 

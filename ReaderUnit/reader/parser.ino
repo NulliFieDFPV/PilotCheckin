@@ -1,3 +1,6 @@
+
+//TODO - ein hin und her hier mit den Datentypen. Das geht aber schöner!!
+
 void parseCommand() {
   
   String msg="";
@@ -36,7 +39,6 @@ void parseCommand() {
         //Serial.println(cmdTmpValue);
         
         if (strcmp(cmdChar, "SET") == 0) {
-          Serial.println(F("SASDF"));
           commando=cmdChar;
           commandoValue=cmdCharValue;
         }
