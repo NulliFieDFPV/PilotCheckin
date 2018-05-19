@@ -11,7 +11,7 @@ from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
 
 from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
 from classes.classHelper import ausgabe
-
+from classes.classConnection import  cConSerial, cConI2C
 
 import threading
 
@@ -33,14 +33,14 @@ class SlaveNode(cChannel):
         if self.port !="":
             if self.typ=="usb":
                 try:
-                    self.__con= serial.Serial(self.port, 9600, timeout=5)
+                    self.__con= cConSerial(port=self.port, baudrate=9600, timeout=5)
                 except:
                     pass
 
             elif self.typ=="i2c":
                 try:
-                    pass
-                    # self.__con=i2c connector
+                    self.__con=cConI2C(adress=0x04, version=2)
+
                 except:
                     pass
 

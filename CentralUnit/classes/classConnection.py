@@ -1,4 +1,78 @@
 import smbus
+import serial
+
+
+class cConSerial(object):
+
+    def __init__(self, **kwargs):
+
+        self.__debug=False
+        self.__baudrate=9600
+        self.__con =None
+        self.__status=False
+
+        if kwargs.has_key("debug"):
+            self.__debug =(kwargs.get("debug")==1)
+
+        if kwargs.has_key("port"):
+            self.__port =kwargs.get("port")
+
+
+        if kwargs.has_key("baudrate"):
+            self.__baudrate =kwargs.get("baudrate")
+
+        if kwargs.has_key("timeout"):
+            self.__timeout =kwargs.get("timeout")
+
+
+        self.__setupConnection()
+
+
+    def __setupConnection(self):
+
+        try:
+            self.__con = serial.Serial(self.__port, self.__baudrate , timeout=self.__timeout)
+        except:
+            self.__con=None
+
+
+        if not self.__con is None:
+            self.__status=True
+
+
+    def __writeToSlave(self, message):
+        try:
+            if self.__status:
+                self.__con.write(message)
+            else:
+                return 1
+
+        except IOError, err:
+                return -1
+        return 0
+
+
+    def write(self, message):
+
+        self.__writeToSlave(message)
+
+    def readline(self):
+        return self.__readFromSlave()
+
+
+    def __readFromSlave(self):
+
+        message=""
+
+        try:
+            if self.__status:
+                message=self.__con.readline()
+
+        except:
+            pass
+
+        return message
+
 
 class cConI2C(object):
 
@@ -38,8 +112,18 @@ class cConI2C(object):
                 return -1
         return 0
 
+
     def __readFromSlave(self):
         pass
+
+
+    def write(self, message):
+
+        self.__writeToSlave(message)
+
+
+    def readline(self):
+        return self.__readFromSlave()
 
 
 if __name__=="__main__":
