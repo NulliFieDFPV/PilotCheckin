@@ -36,6 +36,7 @@ constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
 constexpr uint8_t CONNECTION_MODE = 1;  
 //C_MODE=1 USB/Serial
 // =2 I2C
+// =3 I2C + Serial
 
 
 constexpr char INFOLINE[29] = "----------------------------";
@@ -72,6 +73,14 @@ void setup() {
   if (CONNECTION_MODE==1) {
     setupSerial();
   }
+  else if (CONNECTION_MODE==2) {
+    setupI2C();
+  }
+  else if (CONNECTION_MODE==2) {
+    setupSerial();
+    setupI2C();
+  }
+
 
   SPI.begin();           // MFRC522 Hardware uses SPI protocol
   mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
