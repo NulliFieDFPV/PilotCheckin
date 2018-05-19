@@ -26,7 +26,7 @@ void beep(int milisec, int times=1, int wait=0) {
     digitalWrite(BUZZER_PIN, LOW);     // Beeper an
     delay(milisec);          // dauer des pieps
     digitalWrite(BUZZER_PIN, HIGH);    // Beeper aus
-    Serial.println("beep");
+
     if (wait>0) {
       delay(wait);
       

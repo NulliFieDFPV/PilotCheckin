@@ -94,7 +94,7 @@ void parseCommand() {
 
         Serial.print(F("ASK:COL:"));
         Serial.print(F("SLT"));
-        Serial.print(slot);
+        Serial.print(cmdSlot);
         
         Serial.println(F(";"));
       }
