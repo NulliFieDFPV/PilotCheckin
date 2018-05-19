@@ -6,3 +6,8 @@ bool setupI2C() {
 
 
 
+bool writeToI2c(String message, bool newline) {
+
+    return true;
+
+}

@@ -21,18 +21,19 @@ String stringFromByteArray(byte a[]) {
 
 bool sendCmdToMaster(String command) {
   
-  
-  if (CONNECTION_MODE==1) {
-    writeToSerial(command, false);
-    writeToSerial(":SLT",false);
-    writeToSerial(slot, false);
-    writeToSerial(";", true);
+  command=command+":SLT"+slot+";"
+
+
+  if (CONNECTION_MODE==1 || CONNECTION_MODE==3 ) {
+    //Serial Stuff
+    writeToSerial(command, true);
   }
-  else {
-    return false;
-   
+
+  if (CONNECTION_MODE==2 || CONNECTION_MODE==3) {
+    //i2stuff
+    writeToI2c(command, true)
   }
-  
+
   return true;
 
 }
@@ -40,12 +41,13 @@ bool sendCmdToMaster(String command) {
 bool sendInfoToMaster(String message) {
 
   
-  if (CONNECTION_MODE==1) {
+  if (CONNECTION_MODE==1 || CONNECTION_MODE==3 ) {
     writeToSerial(message, true);
   }
-  else {
-    return false;
-   
+
+  //Infos vielleicht nur an Serial...
+  if (CONNECTION_MODE==2 || CONNECTION_MODE==3) {
+    writeToI2c(command, true)
   }
   
   return true;
