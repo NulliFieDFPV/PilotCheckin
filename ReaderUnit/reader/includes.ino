@@ -21,7 +21,7 @@ String stringFromByteArray(byte a[]) {
 
 bool sendCmdToMaster(String command) {
   
-  command=command+":SLT"+slot+";"
+  command=command+":SLT"+slot+";";
 
 
   if (CONNECTION_MODE==1 || CONNECTION_MODE==3 ) {
@@ -31,7 +31,7 @@ bool sendCmdToMaster(String command) {
 
   if (CONNECTION_MODE==2 || CONNECTION_MODE==3) {
     //i2stuff
-    writeToI2c(command, true)
+    writeToI2c(command, true);
   }
 
   return true;
@@ -47,7 +47,7 @@ bool sendInfoToMaster(String message) {
 
   //Infos vielleicht nur an Serial...
   if (CONNECTION_MODE==2 || CONNECTION_MODE==3) {
-    writeToI2c(command, true)
+    writeToI2c(message, true);
   }
   
   return true;
@@ -67,7 +67,7 @@ uint8_t getID() {
   // There are Mifare PICCs which have 4 byte or 7 byte UID care if you use 7 byte PICC
   // I think we should assume every PICC as they have 4 byte UID
   // Until we support 7 byte PICCs
-  sendInfoToMaster("Scanned Pilot's Card's UID:");
+  sendInfoToMaster(F("Scanned Pilot's Card's UID:"));
   for ( uint8_t i = 0; i < 4; i++) {  //
     readCard[i] = mfrc522.uid.uidByte[i];
     //Serial.print(readCard[i], HEX);
@@ -88,7 +88,7 @@ void setSlot(String newslot) {
   slot=newslot;
 
   sendInfoToMaster("");
-  sendInfoToMaster("This Module is now connected as Slot:");
+  sendInfoToMaster(F("This Module is now connected as Slot:"));
   sendInfoToMaster(slot);
   sendInfoToMaster("");
 
@@ -121,8 +121,8 @@ void ShowReaderDetails() {
   
   // When 0x00 or 0xFF is returned, communication probably failed
   if ((v == 0x00) || (v == 0xFF)) {
-    sendInfoToMaster("WARNING: Communication failure, is the MFRC522 properly connected?");
-    sendInfoToMaster("SYSTEM HALTED: Check connections.");
+    sendInfoToMaster(F("WARNING: Communication failure, is the MFRC522 properly connected?"));
+    sendInfoToMaster(F("SYSTEM HALTED: Check connections."));
     // Visualize system is halted
 
     do {
@@ -202,26 +202,27 @@ bool checkWipe() {
     setLED(255,0,0,1);
     
     // Give some feedback
-    sendInfoToMaster("Wipe Button Pressed");
-    sendInfoToMaster("Master Card will be Erased! in 10 seconds");
+    sendInfoToMaster(F("Wipe Button Pressed"));
+    sendInfoToMaster(F("Master Card will be Erased! in 10 seconds"));
     bool buttonState = monitorWipeButton(10000); // Give user enough time to cancel operation
     
     if (buttonState == true && checkWipeButton() == true) {    // If button still be pressed, wipe EEPROM
 
       EEPROM.write(1, 0);                  // Reset Magic Number.
-      sendInfoToMaster("Master Card Erased from device");
+      sendInfoToMaster(F("Master Card Erased from device"));
       //while (1);
       resetted=true;
     }
     else {
-      sendInfoToMaster("Master Card Erase Cancelled");
+      sendInfoToMaster(F("Master Card Erase Cancelled"));
     }
   }
 
 
   if (EEPROM.read(1) != 143) {
-    sendInfoToMaster("No Master Card defined");
-    sendInfoToMaster("Scan A Pilot's Card to define as Master Card");
+    sendInfoToMaster(F("No Master Card defined"));
+    sendInfoToMaster(F("Scan A Pilot's Card to define as Master Card"));
+    uint8_t successRead;
     
     do {
       successRead = getID();            // sets successRead to 1 when we get read from reader otherwise 0
@@ -236,8 +237,8 @@ bool checkWipe() {
       EEPROM.write( 2 + j, readCard[j] );  // Write scanned PICC's UID to EEPROM, start from address 3
     }
     EEPROM.write(1, 143);                  // Write to EEPROM we defined Master Card.
-    sendInfoToMaster("Master Card Defined");
-    sendInfoToMaster("Waiting Pilot's Card to be scanned");
+    sendInfoToMaster(F("Master Card Defined"));
+    sendInfoToMaster(F("Waiting Pilot's Card to be scanned"));
     
     successRead=0;
 
@@ -277,7 +278,7 @@ void readMaster() {
   }
 
   if (CONNECTION_MODE==2 || CONNECTION_MODE==3) {
-    readI2c()
+    readI2c();
   }
 
 

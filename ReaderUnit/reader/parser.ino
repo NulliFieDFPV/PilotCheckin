@@ -1,76 +1,81 @@
 void parseCommand() {
   
   String msg="";
-  String cmdTmp="";
-  String cmdTmpValue="";
   String commando="";
+
   String commandoValue="";
   String cmdSlot="";
   String cmdStatus="";
   String cmdCard="";
   String cmdAccessory="";
   bool booResponse=false;
+  String message="";
   
   for (int i = 0; i < buffercount; i++)
   {
     //Serial.println(mybuffer[i]);
     //Serial.println(i);
     //Serial.println(intCount);
+
+    //Wenn es ein Doppelpunkt ist
     
     if (mybuffer[i] == 58) {
-    if (msg=="RSP") {
-      booResponse=true;  
-    }
-    else {
-      
-      cmdTmp=msg.substring(0,3);
-      cmdTmpValue=msg.substring(3);
+      if (msg=="RSP") {
+        booResponse=true;  
+      }
+      else {
   
-      //Serial.println(cmdTmp);
-      //Serial.println(cmdTmpValue);
-      
-      if (cmdTmp=="SET") {
-        commando=cmdTmp;
-        commandoValue=cmdTmpValue;
+        char cmdChar[4];
+        msg.substring(0,3).toCharArray(cmdChar, sizeof(cmdChar));
+        //cmdTmpValue=msg.substring(3);
+        
+        char cmdCharValue[msg.substring(3).length()+1];
+        msg.substring(3).toCharArray(cmdCharValue, sizeof(cmdCharValue));
+        
+        //Serial.println(cmdTmp);
+        //Serial.println(cmdTmpValue);
+        
+        if (strcmp(cmdChar, "SET") == 0) {
+          Serial.println(F("SASDF"));
+          commando=cmdChar;
+          commandoValue=cmdCharValue;
+        }
+        
+        else if (strcmp(cmdChar, "SLT") == 0) {
+          cmdSlot=cmdCharValue;
+        }
+        else if (strcmp(cmdChar, "EXS") == 0) {
+          cmdCard=cmdCharValue;
+          commando=cmdChar;
+        }
+    
+        else if (strcmp(cmdChar, "CHK") == 0) {
+          cmdCard=cmdCharValue;
+          commando=cmdChar;
+        }
+        else if (strcmp(cmdChar, "RST") == 0) {
+          cmdCard=cmdCharValue;
+          commando=cmdChar;
+        }
+        else if (strcmp(cmdChar, "ADD") == 0) {
+          cmdCard=cmdCharValue;
+          commando=cmdChar;
+        }
+        else if (strcmp(cmdChar, "RMV") == 0) {
+          cmdCard=cmdCharValue;
+          commando=cmdChar;
+        }
+        else if (strcmp(cmdChar, "STA") == 0) {
+          cmdStatus=cmdCharValue;
+        }
+        else if (strcmp(cmdChar, "ACC") == 0) {
+          cmdAccessory=cmdCharValue;
+        }
       }
-      
-      else if (cmdTmp=="SLT") {
-        cmdSlot=cmdTmpValue;
-      }
-      else if (cmdTmp=="EXS") {
-        cmdCard=cmdTmpValue;
-        commando=cmdTmp;
-      }
-  
-      else if (cmdTmp=="CHK") {
-        cmdCard=cmdTmpValue;
-        commando=cmdTmp;
-      }
-      else if (cmdTmp=="RST") {
-        cmdCard=cmdTmpValue;
-        commando=cmdTmp;
-      }
-      else if (cmdTmp=="ADD") {
-        cmdCard=cmdTmpValue;
-        commando=cmdTmp;
-      }
-      else if (cmdTmp=="RMV") {
-        cmdCard=cmdTmpValue;
-        commando=cmdTmp;
-      }
-      else if (cmdTmp=="STA") {
-        cmdStatus=cmdTmpValue;
-      }
-      else if (cmdTmp=="ACC") {
-        cmdAccessory=cmdTmpValue;
-      }
-    }
       //Serial.println("--------------------");
       //Serial.println(msg);
       //Serial.println("--------------------");
 
-      
-      
       msg="";
     }
     else {
@@ -80,48 +85,45 @@ void parseCommand() {
 
   if (booResponse==true) {
 
-    Serial.println("--------------------");
+    sendInfoToMaster(INFOLINE);
     
-    Serial.println(commando);
-    Serial.println(cmdSlot);
-    Serial.println(cmdStatus);
-    Serial.println(cmdAccessory);
-    Serial.println("--------------------");
+    sendInfoToMaster(commando);
+    sendInfoToMaster(cmdSlot);
+    sendInfoToMaster(cmdStatus);
+    sendInfoToMaster(cmdAccessory);
+    sendInfoToMaster(INFOLINE);
     
     if (commando=="SET") {
       if (commandoValue=="slot") {
         setSlot(cmdSlot);
-
-        Serial.print(F("ASK:COL:"));
-        Serial.print(F("SLT"));
-        Serial.print(cmdSlot);
         
-        Serial.println(F(";"));
+        sendCmdToMaster(F("ASK:COL:"));
+        
       }
       if (commandoValue=="color") {
+
+        
         int r= cmdAccessory.substring(0,3).toInt();
         int g=cmdAccessory.substring(4,7).toInt();
         int b=cmdAccessory.substring(8,10).toInt();   
-        //Serial.println(r);
-        //Serial.println(g);
-        //Serial.println(b);
+
         setColor(r, g, b);
       }
     }
     else if (commando=="EXS") {
       if (cmdStatus=="ok") {
         if (cmdAccessory=="delete") {
-          Serial.println(F("Removing Pilot's Card..."));
+          sendInfoToMaster(F("Removing Pilot's Card..."));
           //Machen wir das hier überhaupt noch??
           //deleteID(cmdCard);
-          Serial.println("-----------------------------");
         }
         if (cmdAccessory=="add") {
-          Serial.println(F("Adding Pilot's Card..."));
+          sendInfoToMaster(F("Adding Pilot's Card..."));
           //Machen wir das hier überhaupt noch??
           //writeID(cmdCard);
-          Serial.println("-----------------------------");
+          
         }
+        sendInfoToMaster(INFOLINE);
       }
       
       
@@ -130,83 +132,78 @@ void parseCommand() {
     else if (commando=="CHK") {
       
       if (cmdStatus=="ok") {
-        Serial.print(F("Pilot ID "));
-        Serial.print(cmdCard);
-        Serial.print(F(" Checked In At "));
-        Serial.println(cmdSlot);
+        message="Pilot ID " + cmdCard + " Checked In At " + cmdSlot;
+        sendInfoToMaster(message);
         
         granted();
      
       }
       else if (cmdStatus=="failed") {
-        Serial.print(F("Pilot ID "));
-        Serial.print(cmdCard);
-        Serial.print(F(" NOT Checked In At "));
-        Serial.println(cmdSlot);
-  
+        
+        message="Pilot ID " + cmdCard + " NOT Checked In At " + cmdSlot;
+        sendInfoToMaster(message);
+        
         denied();
         
       }
       else if (cmdStatus=="notreg") {
-        Serial.print(F("Pilot ID "));
-        Serial.print(cmdCard);
-        Serial.println(F(" NOT registered "));
-  
+        
+        message="Pilot ID " + cmdCard + " NOT Registered";
+        sendInfoToMaster(message);
+        
         denied();
   
       }
       else if (cmdStatus=="noatt") {
-        Serial.print(F("Pilot ID "));
-        Serial.print(cmdCard);
-        Serial.println(F(" NO attendance"));
-  
+
+        message="Pilot ID " + cmdCard + " NO Attendance";
+        
+        sendInfoToMaster(message);
+        
         denied();
   
       }
       else if (cmdStatus=="nochan") {
-        Serial.print(F("Pilot ID "));
-        Serial.print(cmdCard);
-        Serial.println(F(" WRONG slot"));
-  
+        
+        message="Pilot ID " + cmdCard + " WRONG Slot At " + cmdSlot;
+        
+        sendInfoToMaster(message);
+        
         denied();
       }
     }
     
     else if (commando=="ADD") {
       if (cmdStatus=="ok") {
-        Serial.print(F("Succesfully added ID "));
-        Serial.println(cmdCard);
+
+        message="Succesfully Added ID " + cmdCard + " Via Slot" + cmdSlot;
+        
+        sendInfoToMaster(message);
         successWrite();
       }
       else {
-        Serial.print(F("Adding Failed ID "));
-        Serial.println(cmdCard);
+        
+        message="Failed Adding ID " + cmdCard + " Via Slot" + cmdSlot;
+        
+        sendInfoToMaster(message);
         failedWrite();
       }
     }
     
-    else if (commando=="RMV") {
-      //TODO obsolet
-      if (cmdStatus=="ok") {
-        Serial.print(F("Succesfully disabled ID "));
-        Serial.println(cmdCard);
-        successReset();
-      }
-      else {
-        Serial.print(F("Removing Failed ID "));
-        Serial.println(cmdCard);
-        failedWrite();
-      }
-    }
+   
     else if (commando=="RST") {
       if (cmdStatus=="ok") {
-        Serial.print(F("Succesfully resetted ID "));
-        Serial.println(cmdCard);
+
+        message="Succesfully Resetted ID " + cmdCard + " Via Slot" + cmdSlot;
+        
+        sendInfoToMaster(message);
         successReset();
       }
       else {
-        Serial.print(F("Reset Failed ID "));
-        Serial.println(cmdCard);
+        
+        message="Reset Failed ID  " + cmdCard + " Via Slot" + cmdSlot;
+        
+        sendInfoToMaster(message);
         failedWrite();
       }
     }

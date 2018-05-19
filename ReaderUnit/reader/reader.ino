@@ -31,20 +31,13 @@ constexpr uint8_t WIPEBUTTON_PIN = 3;     // Button pin for WipeMode
 constexpr uint8_t LED_PIN = 2;     // WS2812 Pin
 constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
 constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
-
-
 constexpr uint8_t CONNECTION_MODE = 1;  
 //C_MODE=1 USB/Serial
 // =2 I2C
 // =3 I2C + Serial
 
-
-constexpr char INFOLINE[29] = "----------------------------";
-
 bool programMode = false;  // initialize programming mode to false
-
-uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reader
-
+constexpr char INFOLINE[29] = "----------------------------";
 
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte masterCard[4];   // Stores master card's ID read from EEPROM
@@ -103,10 +96,10 @@ void setup() {
   }
   
   sendInfoToMaster(INFOLINE);
-  sendInfoToMaster("Master Card's UID");
+  sendInfoToMaster(F("Master Card's UID"));
   sendInfoToMaster(stringFromByteArray(masterCard));
   sendInfoToMaster(INFOLINE);
-  sendInfoToMaster("Everything is ready");
+  sendInfoToMaster(F("Everything is ready"));
   
   //Commando
   //Am Pi anmelden
@@ -123,7 +116,11 @@ void setup() {
 ///////////////////////////////////////// Main Loop ///////////////////////////////////
 void loop () {
 
-  writeToSerial("Waiting Pilot's Card to be scanned", true);
+
+  uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reade
+
+
+  sendInfoToMaster(F("Waiting Pilot's Card to be scanned"));
   //Hauptschleife, zuerst RFID auslesen, dann Pi
   do {
 
@@ -160,8 +157,8 @@ void loop () {
     if ( isMaster(readCard) ) { 
       //Im Program Mode zuerst prüfen, ob es die Master Card ist -> Programm Mode verlassen 
       //und Loop beenden
-      sendInfoToMaster("Master Card Scanned");
-      sendInfoToMaster("Exiting Program Mode");
+      sendInfoToMaster(F("Master Card Scanned"));
+      sendInfoToMaster(F("Exiting Program Mode"));
       sendInfoToMaster(INFOLINE);
       
       programMode = false;
@@ -172,9 +169,9 @@ void loop () {
     //Wenn man hier ankommt, wird es keine Master Card sein, dann soll die wohl hinzu gefügt wreden
     writeID(readCard);
   
-    sendInfoToMaster("Adding Pilot's Card...");
+    sendInfoToMaster(F("Adding Pilot's Card..."));
     sendInfoToMaster(INFOLINE);
-    sendInfoToMaster("Scan a Pilot's Card to ADD or REMOVE to List");
+    sendInfoToMaster(F("Scan a Pilot's Card to ADD or REMOVE to List"));
   }
 
   //********** Normal Mode **********
@@ -182,9 +179,9 @@ void loop () {
     if ( isMaster(readCard)) {    
       // Wenn es die Master Card ist - Program Mode starten
       programMode = true;
-        sendInfoToMaster("Hello Master - Entered Program Mode");
-        sendInfoToMaster("Scan a Pilot's Card to ADD or REMOVE to List");
-        sendInfoToMaster("Scan Master Card again to Exit Program Mode");
+        sendInfoToMaster(F("Hello Master - Entered Program Mode"));
+        sendInfoToMaster(F("Scan a Pilot's Card to ADD or REMOVE to List"));
+        sendInfoToMaster(F("Scan Master Card again to Exit Program Mode"));
         sendInfoToMaster(INFOLINE);
     }
     else {
