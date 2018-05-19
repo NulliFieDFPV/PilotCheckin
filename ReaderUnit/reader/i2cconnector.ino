@@ -3,6 +3,7 @@
 bool setupI2C() {
 
   Wire.begin();
+  
   return true;
 }
 
