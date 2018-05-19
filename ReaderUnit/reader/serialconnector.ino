@@ -28,12 +28,9 @@ bool writeToSerial(String message, bool newline) {
 }
 
 
-void readSerial() {
+bool readSerial() {
 
   bool success=false;
-  //Buffer für den Parser, hier kommen die Chars aus dem Pi rein
-
-
   
   //wenn ein Befehl vom Pi kommt
   do {

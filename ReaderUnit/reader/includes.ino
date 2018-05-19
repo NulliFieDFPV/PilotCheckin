@@ -86,7 +86,6 @@ uint8_t getID() {
 void setSlot(String newslot) {
   
   slot=newslot;
-  //TODO LED anzeige, dass jetzt was geaendert wurde
 
   sendInfoToMaster("");
   sendInfoToMaster("This Module is now connected as Slot:");
@@ -271,13 +270,17 @@ bool checkWipe() {
 
 void readMaster() {
 
+
   if (CONNECTION_MODE==1) {
+    //ausgelesen wird nur, wenn serial aktiviert ist
     readSerial();
   }
-  else {
-    return false;
+
+  if (CONNECTION_MODE==2 || CONNECTION_MODE==3) {
+    readI2c()
   }
-  
+
+
   //wenn ein Befehl vom Pi kommt
   //do {
   //  if (Serial.available()>0) {
