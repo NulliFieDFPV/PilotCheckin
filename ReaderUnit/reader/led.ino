@@ -1,13 +1,16 @@
+#include <Adafruit_NeoPixel.h>
 
 int ledPins[ANZAHL_LEDS];
 int LONGBEEP=300;
 int SHORTBEEP=100;
 int BEEPINGWAIT=100;
+int SHORTBEEPINGWAIT=20;
 
 //global verfügbare channel-farbe   
 int channelColor[3]={0, 0, 0};
 
-Adafruit_NeoPixel ledStrip = Adafruit_NeoPixel(30, ledpin, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel ledStrip = Adafruit_NeoPixel(30, LED_PIN, NEO_GRB + NEO_KHZ800);
+
 
 bool setupLed() {
   
@@ -49,6 +52,7 @@ void showCardScanned() {
 
 
 void failedWrite() {
+  
   ledPins[0]=1;
   ledPins[1]=1;
   ledPins[2]=1;
@@ -69,6 +73,25 @@ void successReset() {
   
   colorBlink(5, 6, 100, 1, 400);
   
+  delay(400);
+  
+}
+
+void showInitial() {
+  
+  ledPins[0]=1;
+  ledPins[1]=1;
+  ledPins[2]=1;
+  ledPins[3]=1;
+  
+  colorBlink(255, 208, 0, 1, 80);
+
+  beep(SHORTBEEP, 3, SHORTBEEPINGWAIT);
+
+  colorBlink(255, 208, 0, 1, 80);
+
+  beep(LONGBEEP, 3, BEEPINGWAIT);
+
   delay(400);
   
 }

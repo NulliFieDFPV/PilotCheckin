@@ -50,14 +50,40 @@ bool writeToSerial(String message, bool newline) {
 }
 
 
-bool writeCommandToSerial(String message) {
+void readSerial() {
 
-  bool rstatus=true;
+  bool success=false;
+  //Buffer für den Parser, hier kommen die Chars aus dem Pi rein
 
-  writeToSerial(message, false);
-  writeToSerial(slot, false);
-  writeToSerial(";", true);
-  return rstatus;
+
+  
+  //wenn ein Befehl vom Pi kommt
+  do {
+    if (Serial.available()>0) {
+      char myread=Serial.read();
+
+      if (String(myread)==";") {
+        //verarbeiten  
+        //Serial.println(F("PArsing..."));
+        parseCommand(); 
+        
+        for (int i = 0; i < buffercount; i++)
+        {
+            mybuffer[i] = NULL;
+        }
+        buffercount=0;
+        
+        success=true;
+        
+      }
+      else {
+        mybuffer[buffercount++]=myread;
+      }
+
+    }  
+  }      
+  while (Serial.available()>0);
+
+  return success;
   
 }
-

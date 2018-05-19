@@ -19,27 +19,31 @@
 #include <EEPROM.h>     // We are going to read and write PICC's UIDs from/to EEPROM
 #include <SPI.h>        // RC522 Module uses SPI protocol
 #include <MFRC522.h>  // Library for Mifare RC522 Devices
-#include <Adafruit_NeoPixel.h>
-
 
 #define COMMON_ANODE
 constexpr uint8_t ANZAHL_LEDS =4;
 constexpr uint8_t CHANNEL_LED =3;
 constexpr uint8_t MODE_LED=0;
+
+
 constexpr uint8_t BUZZER_PIN = 5;     // Set Relay Pin
-constexpr uint8_t wipeB = 3;     // Button pin for WipeMode
-constexpr uint8_t ledpin = 2;     // WS2812 Pin
+constexpr uint8_t WIPEBUTTON_PIN = 3;     // Button pin for WipeMode
+constexpr uint8_t LED_PIN = 2;     // WS2812 Pin
 constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
 constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
-constexpr uint8_t CONNECTION_MODE = 1;  
 
+
+constexpr uint8_t CONNECTION_MODE = 1;  
 //C_MODE=1 USB/Serial
 // =2 I2C
+
+
+constexpr char INFOLINE[29] = "----------------------------";
 
 bool programMode = false;  // initialize programming mode to false
 
 uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reader
-String slot="0000"; 
+
 
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte masterCard[4];   // Stores master card's ID read from EEPROM
@@ -53,11 +57,11 @@ void setup() {
   
   //Arduino Pin Configuration
   setupLed();
-
-  pinMode(wipeB, INPUT);   // Enable pin's pull up resistor
+  setupWipeButton();
   setupBuzzer();
 
-
+  showInitial();
+  
   //LEDs zurücksetzen
   colorWipe(0,0,0,5);
 
@@ -75,31 +79,30 @@ void setup() {
 
   //If you set Antenna Gain to Max it will increase reading distance
   //mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max);
-  if (CONNECTION_MODE==1) {
-    writeToSerial("Pilot Access Control v0.1", true);
-  }
+  
+  sendInfoToMaster("Pilot Access Control v0.1");
+
   
   //Serial.println(F("Pilot Access Control v0.1"));   // For debugging purposes
   ShowReaderDetails();  // Show details of PCD - MFRC522 Card Reader details
 
   checkWipe();
   
-  if (CONNECTION_MODE==1) {
-    //Infos
-
-    writeToSerial("-------------------", true);
-    writeToSerial("Master Card's UID", true);
-    String c=CreateHexString(masterCard);
-    writeToSerial(c, true);
-    writeToSerial("-------------------", true);
-    writeToSerial("Everything is ready", true);
-    
-    //Commando
-    //Am Pi anmelden
-    
-    writeCommandToSerial("ASK:WLK");
-    
+  //Infos
+  for ( uint8_t i = 0; i < 4; i++ ) {          // Read Master Card's UID from EEPROM
+    masterCard[i] = EEPROM.read(2 + i);    // Write it to masterCard
   }
+  
+  sendInfoToMaster(INFOLINE);
+  sendInfoToMaster("Master Card's UID");
+  sendInfoToMaster(stringFromByteArray(masterCard));
+  sendInfoToMaster(INFOLINE);
+  sendInfoToMaster("Everything is ready");
+  
+  //Commando
+  //Am Pi anmelden
+  
+  sendCmdToMaster("ASK:WLK0000");
   
   rainbowCycle(1);    // Everything ready lets give user some feedback by cycling leds
 }
@@ -117,7 +120,7 @@ void loop () {
 
     showColorChannel();
     checkWipe();
-    
+
     successRead = getID();  // sets successRead to 1 when we get read from reader otherwise 0
     
     
@@ -148,12 +151,9 @@ void loop () {
     if ( isMaster(readCard) ) { 
       //Im Program Mode zuerst prüfen, ob es die Master Card ist -> Programm Mode verlassen 
       //und Loop beenden
-      if (CONNECTION_MODE==1) {
-        writeToSerial("Master Card Scanned", true);
-        writeToSerial("Master Card Scanned", true);
-        writeToSerial("Exiting Program Mode", true);
-        writeToSerial("-----------------------------", true);
-      }
+      sendInfoToMaster("Master Card Scanned");
+      sendInfoToMaster("Exiting Program Mode");
+      sendInfoToMaster(INFOLINE);
       
       programMode = false;
       
@@ -162,13 +162,10 @@ void loop () {
 
     //Wenn man hier ankommt, wird es keine Master Card sein, dann soll die wohl hinzu gefügt wreden
     writeID(readCard);
-
-    if (CONNECTION_MODE==1) {    
-      writeToSerial("Adding Pilot's Card...", true);
-      writeToSerial("-----------------------------", true);
-      writeToSerial("Scan a Pilot's Card to ADD or REMOVE to List", true);
-    }
-
+  
+    sendInfoToMaster("Adding Pilot's Card...");
+    sendInfoToMaster(INFOLINE);
+    sendInfoToMaster("Scan a Pilot's Card to ADD or REMOVE to List");
   }
 
   //********** Normal Mode **********
@@ -176,12 +173,10 @@ void loop () {
     if ( isMaster(readCard)) {    
       // Wenn es die Master Card ist - Program Mode starten
       programMode = true;
-      if (CONNECTION_MODE==1) {
-        writeToSerial("Hello Master - Entered Program Mode", true);
-        writeToSerial("Scan a Pilot's Card to ADD or REMOVE to List", true);
-        writeToSerial("Scan Master Card again to Exit Program Mode", true);
-        writeToSerial("-----------------------------", true);
-      }
+        sendInfoToMaster("Hello Master - Entered Program Mode");
+        sendInfoToMaster("Scan a Pilot's Card to ADD or REMOVE to List");
+        sendInfoToMaster("Scan Master Card again to Exit Program Mode");
+        sendInfoToMaster(INFOLINE);
     }
     else {
       //Ist alles andere als ne Master Card
