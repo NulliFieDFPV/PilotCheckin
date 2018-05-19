@@ -94,7 +94,7 @@ void parseCommand() {
 
         Serial.print(F("ASK:COL:"));
         Serial.print(F("SLT"));
-        Serial.print(slot);
+        Serial.print(cmdSlot);
         
         Serial.println(F(";"));
       }
@@ -135,7 +135,7 @@ void parseCommand() {
         Serial.print(F(" Checked In At "));
         Serial.println(cmdSlot);
         
-        granted(300);
+        granted();
      
       }
       else if (cmdStatus=="failed") {
