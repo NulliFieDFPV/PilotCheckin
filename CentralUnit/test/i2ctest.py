@@ -8,7 +8,7 @@ while True:
 
     time.sleep(1)
 
-    bus.write_byte_data(0x38, 0x00, 0xFF)
+    bus.write_i2c_block_data(0x38, 0x09, [0xFF, 1,2,3,4,5,6,7])
 
     time.sleep(1)
 
@@ -16,6 +16,6 @@ while True:
 
     time.sleep(1)
 
-    bus.write_byte_data(0x38, 0x01, 0xFF)
+    bus.write_byte_data(0x38, 0x02, 0xF0)
 
     time.sleep(1)
