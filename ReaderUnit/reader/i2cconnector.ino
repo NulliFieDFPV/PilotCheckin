@@ -2,12 +2,17 @@
 
 bool setupI2C() {
 
-  Wire.begin();
+  Wire.begin(I2C_ADDR);
+  Wire.onReceive(readI2c);
+  Wire.onRequest(oni2cRequest); // data request to slave
   
   return true;
 }
 
 
+bool oni2cRequest() {
+  return true;
+}
 
 bool writeToI2c(String message, bool newline) {
 

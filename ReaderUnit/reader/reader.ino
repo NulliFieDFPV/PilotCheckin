@@ -23,7 +23,7 @@ constexpr uint8_t ANZAHL_LEDS =4;
 constexpr uint8_t CHANNEL_LED =3;
 constexpr uint8_t MODE_LED=0;
 
-constexpr byte I2C_ADDR=0x27;
+constexpr byte I2C_ADDR=0x38;
 
 constexpr uint8_t BUZZER_PIN = 5;     // Set Relay Pin
 constexpr uint8_t WIPEBUTTON_PIN = 3;     // Button pin for WipeMode

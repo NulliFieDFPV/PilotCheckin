@@ -213,7 +213,7 @@ void readMaster() {
   }
 
   if (CONNECTION_MODE==2 || CONNECTION_MODE==3) {
-    readI2c();
+    //readI2c();
   }
 
 

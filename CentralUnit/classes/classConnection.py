@@ -86,12 +86,12 @@ class cConI2C(object):
 
     def __init__(self, **kwargs):
 
-        debug=False
-        self.__address = 0x40
+        self.__debug=False
+        self.__address = 0x38
         self.__version = 1
 
         if kwargs.has_key("debug"):
-            debug =(kwargs.get("debug")==1)
+            self.__debug =(kwargs.get("debug")==1)
 
         if kwargs.has_key("address"):
             self.__address =kwargs.get("address")
@@ -115,7 +115,7 @@ class cConI2C(object):
 
     def __writeToSlave(self, message):
         try:
-            self.__bus.write_byte(self.__address, message) # 5 = I/O error
+            self.__bus.write_word_data(self.__address, message) # 5 = I/O error
         except IOError, err:
                 return -1
         return 0
