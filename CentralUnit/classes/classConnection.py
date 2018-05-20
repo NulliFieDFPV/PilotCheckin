@@ -116,6 +116,8 @@ class cConI2C(object):
                 return -1
         return 0
 
+    def close(self):
+        pass
 
     def __readFromSlave(self):
         pass
