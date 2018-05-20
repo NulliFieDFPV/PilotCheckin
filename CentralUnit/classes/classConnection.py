@@ -10,14 +10,14 @@ class cConSerial(object):
         self.__baudrate=9600
         self.__con =None
         self.__status=False
-        self.__port = 0x48
+        self.__port = ""
 
         if kwargs.has_key("debug"):
             self.__debug =(kwargs.get("debug")==1)
 
         if kwargs.has_key("port"):
-            pass
-            #self.__port =kwargs.get("port")
+
+            self.__port =kwargs.get("port")
 
 
         if kwargs.has_key("baudrate"):
@@ -75,7 +75,7 @@ class cConSerial(object):
         try:
             if self.__status:
                 message=self.__con.readline()
-                print message
+
         except:
             pass
 
@@ -87,8 +87,8 @@ class cConI2C(object):
     def __init__(self, **kwargs):
 
         debug=False
-        self.__address = 0x04
-        self.__version = 2
+        self.__address = 0x40
+        self.__version = 1
 
         if kwargs.has_key("debug"):
             debug =(kwargs.get("debug")==1)

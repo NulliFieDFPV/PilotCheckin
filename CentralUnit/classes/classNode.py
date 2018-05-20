@@ -33,8 +33,8 @@ class SlaveNode(cChannel):
         if self.port !="":
             if self.typ=="usb":
                 try:
-                    #self.__con= cConSerial(port=self.port, baudrate=9600, timeout=5)
-                    self.__con = serial.Serial(self.__port, 9600, timeout=5)
+                    self.__con= cConSerial(port=self.port, baudrate=9600, timeout=5)
+                    #self.__con = serial.Serial(self.port, 9600, timeout=5)
                 except:
                     pass
 
