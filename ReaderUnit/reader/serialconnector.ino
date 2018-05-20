@@ -1,6 +1,8 @@
 
 
 bool setupSerial() {
+
+  
    Serial.begin(9600);  // Initialize serial communications with PC
 }
 
@@ -9,7 +11,7 @@ bool writeToSerial(String message, bool newline) {
 
   bool rstatus=true;
 
-  if (CONNECTION_MODE==1) {
+  if (CONNECTION_MODE==1  || CONNECTION_MODE==3) {
     if (newline) {
       Serial.println(message);
       //F()

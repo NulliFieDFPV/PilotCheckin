@@ -22,7 +22,6 @@ bool sendCmdToMaster(String command) {
   
   command=command+":SLT"+slot+";";
 
-
   if (CONNECTION_MODE==1 || CONNECTION_MODE==3 ) {
     //Serial Stuff
     writeToSerial(command, true);

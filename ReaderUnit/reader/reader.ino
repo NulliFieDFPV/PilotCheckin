@@ -23,14 +23,14 @@ constexpr uint8_t ANZAHL_LEDS =4;
 constexpr uint8_t CHANNEL_LED =3;
 constexpr uint8_t MODE_LED=0;
 
-constexpr byte I2C_ADDR=44;
+constexpr byte I2C_ADDR=0x27;
 
 constexpr uint8_t BUZZER_PIN = 5;     // Set Relay Pin
 constexpr uint8_t WIPEBUTTON_PIN = 3;     // Button pin for WipeMode
 constexpr uint8_t LED_PIN = 2;     // WS2812 Pin
 constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
 constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
-constexpr uint8_t CONNECTION_MODE = 1;  
+constexpr uint8_t CONNECTION_MODE = 3;  
 //C_MODE=1 USB/Serial
 // =2 I2C
 // =3 I2C + Serial
@@ -72,7 +72,6 @@ void setup() {
   else if (CONNECTION_MODE==3) {
     setupI2C();
     setupSerial();
-    
   }
 
   setupMfrc();
