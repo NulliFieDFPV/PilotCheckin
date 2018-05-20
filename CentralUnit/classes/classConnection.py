@@ -30,6 +30,7 @@ class cConSerial(object):
         self.__setupConnection()
 
 
+
     def __setupConnection(self):
 
         try:
@@ -74,7 +75,7 @@ class cConSerial(object):
         try:
             if self.__status:
                 message=self.__con.readline()
-
+                print message
         except:
             pass
 
