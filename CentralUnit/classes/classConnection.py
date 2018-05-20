@@ -39,6 +39,10 @@ class cConSerial(object):
         if not self.__con is None:
             self.__status=True
 
+    def close(self):
+
+        self.__con.close()
+
 
     def __writeToSlave(self, message):
         try:
