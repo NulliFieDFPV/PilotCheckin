@@ -10,12 +10,14 @@ class cConSerial(object):
         self.__baudrate=9600
         self.__con =None
         self.__status=False
+        self.__port = 0x48
 
         if kwargs.has_key("debug"):
             self.__debug =(kwargs.get("debug")==1)
 
         if kwargs.has_key("port"):
-            self.__port =kwargs.get("port")
+            pass
+            #self.__port =kwargs.get("port")
 
 
         if kwargs.has_key("baudrate"):
@@ -38,6 +40,7 @@ class cConSerial(object):
 
         if not self.__con is None:
             self.__status=True
+
 
     def close(self):
 
@@ -120,7 +123,8 @@ class cConI2C(object):
         pass
 
     def __readFromSlave(self):
-        pass
+
+        return self.__bus.read_byte(self.__address)
 
 
     def write(self, message):
