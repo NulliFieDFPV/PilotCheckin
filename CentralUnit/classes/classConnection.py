@@ -1,6 +1,6 @@
 import smbus
 import serial
-
+import time
 
 class cConSerial(object):
 
@@ -112,6 +112,9 @@ class cConI2C(object):
         else:
             self.__bus = smbus.SMBus(1)
 
+        while True:
+            self.__writeToSlave("hallo")
+            time.sleep(1)
 
     def __writeToSlave(self, message):
         try:
@@ -139,4 +142,4 @@ class cConI2C(object):
 
 if __name__=="__main__":
 
-    con=cConI2C(0x04)
+    con=cConI2C(address=0x38, timeout=10, version=1)
