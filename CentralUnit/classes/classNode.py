@@ -30,8 +30,7 @@ class SlaveNode(cChannel):
         self.__queue=queue
         self.__msg_temp=""
 
-        print self.typ
-        
+
         if self.typ=="usb":
             if self.port != "":
                 try:

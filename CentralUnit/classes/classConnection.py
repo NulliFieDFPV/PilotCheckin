@@ -124,6 +124,8 @@ class cConI2C(object):
 
     def __writeToSlave(self, cmd, vals):
 
+        print "write"
+
         try:
             self.__bus.write_block_data(self.__address, cmd, vals) # 5 = I/O error
         except IOError, err:
