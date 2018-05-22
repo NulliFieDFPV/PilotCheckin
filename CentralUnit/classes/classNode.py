@@ -75,11 +75,15 @@ class SlaveNode(cChannel):
 
 
     def __readFromI2c(self):
-        vals=self.__con.readline()
 
-        if len(vals)==COMMAND_LENGTH:
-            print(vals)
+        try:
+            vals=self.__con.readline()
 
+            if len(vals)==COMMAND_LENGTH:
+                print(vals)
+
+        except Exception as e:
+            print(e)
 
 
     def __readFromUSB(self):
