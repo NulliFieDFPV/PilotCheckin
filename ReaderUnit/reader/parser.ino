@@ -17,8 +17,8 @@ void parseCmd(byte cmd[]) {
     case 1:
       //channelid
       setCid(cmd[3]);
-      //TODO
-      //sendCmdToMaster(F("ASK:COL:"));
+      
+      askColorI2c();
       break;
       
     case 2:

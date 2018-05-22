@@ -1,6 +1,6 @@
 
 
-uint8_t channelId=0; 
+
 
 
 String stringFromByteArray(byte a[]) {
@@ -18,16 +18,6 @@ String stringFromByteArray(byte a[]) {
 }
 
 
-bool sendCmdToMaster(String command) {
-  
-  command=command+":SLT"+channelId+";";
-
-
-   writeToI2c(command, true);
-
-  return true;
-
-}
 
 bool sendInfoToMaster(String message) {
 
@@ -67,7 +57,9 @@ void writeID( byte a[]) {
   //Serial.print(channelid);
   //Serial.println(F(";"));
 
-  sendCmdToMaster("CMD:ADD" + stringFromByteArray(a));
+  //sendCmdToMaster("CMD:ADD" + stringFromByteArray(a));
+  addCardI2c(a);
+  
   
 }
 
@@ -85,7 +77,9 @@ bool checkTwo ( byte a[], byte b[] ) {
 ///////////////////////////////////////// Find ID From EEPROM   ///////////////////////////////////
 bool checkIn( byte a[]) {
   
-  sendCmdToMaster("CMD:CHK" + stringFromByteArray(a));
+  //sendCmdToMaster("CMD:CHK" + stringFromByteArray(a));
+  checkInI2c(a);
+
   
   //Serial.print(F("CMD:CHK"));
   //for ( uint8_t i = 0; i < 4; i++) {  //

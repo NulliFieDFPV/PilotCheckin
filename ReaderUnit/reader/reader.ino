@@ -36,6 +36,7 @@ constexpr uint8_t CMD_SIZE = 8;
 
 char mybuffer[64];
 int buffercount=0;
+uint8_t channelId=0; 
 
 bool programMode = false;  // initialize programming mode to false
 constexpr char INFOLINE[29] = "----------------------------";
@@ -154,9 +155,8 @@ void startMeUp() {
 
   setupMfrc();
 
-
-  
   sendInfoToMaster(F("Pilot Access Control v0.1"));
+
 
   
   //Serial.println(F("Pilot Access Control v0.1"));   // For debugging purposes
