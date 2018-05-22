@@ -20,7 +20,7 @@ def writeNumber(value):
         bus.write_byte(0x38, ord(character)) # send each char's ASCII encoding
 
     return -1
-
+    bus.r
 def readNumber():
 
     # I'm not familiar with the SMbus library, so you'll have to figure out how to

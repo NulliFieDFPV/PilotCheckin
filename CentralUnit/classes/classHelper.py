@@ -20,6 +20,8 @@ TYPE_DBG = "[DBG]"
 TYPE_ERR = "[ERR]"
 TYPE_INF = "[INF]"
 
+COMMAND_LENGTH=8
+
 def ausgabe(type, message,debugmode=False):
 
     returnStatus = True
@@ -41,7 +43,7 @@ def ausgabe(type, message,debugmode=False):
 
 class cCommando(object):
 
-    def __init__(self, commandos):
+    def __init__(self, **kwargs):
 
         self.prefix=""
 
@@ -51,9 +53,12 @@ class cCommando(object):
         self.cardId=""
         self.accessory=""
         self.cid = 0
-        self.__lCommandos = commandos
+        self.__lCommandos =[]
 
-        self.__verarbeiteListe()
+        if kwargs.has_key("list"):
+            self.__lCommandos = kwargs["list"]
+
+            self.__verarbeiteListe()
 
 
     def __verarbeiteListe(self):
