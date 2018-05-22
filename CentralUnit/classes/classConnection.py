@@ -132,7 +132,7 @@ class cConI2C(object):
         except IOError, err:
                 print err
                 return -1
-        
+
         except Exception as e:
                 print(e)
 
@@ -149,9 +149,9 @@ class cConI2C(object):
 
 
 
-    def write(self, message):
+    def write(self, cmd, vals):
 
-        self.__writeToSlave(message)
+        self.__writeToSlave(cmd, vals)
 
 
     def readline(self):

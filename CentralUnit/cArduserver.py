@@ -294,7 +294,7 @@ class ioserver(object):
 
         if self.__nodes.has_key(slot):
             node=self.__nodes[slot]
-            node.sendToNode(message, nodeId)
+            node.sendToSerialNode(message, nodeId)
         else:
             returnStatus=False
 

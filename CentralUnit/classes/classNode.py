@@ -133,7 +133,13 @@ class SlaveNode(cChannel):
         return (not self.__con is None)
 
 
-    def sendToNode(self, message, nodeId=None):
+    def sendToI2cNode(self, cmd, vals):
+        if not self.__con is None:
+            self.__con.write()
+        pass
+
+
+    def sendToSerialNode(self, message, nodeId=None):
 
         returnStatus = True
 
