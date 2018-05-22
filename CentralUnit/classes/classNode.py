@@ -7,7 +7,7 @@ from classes.classRace import cChannel
 from classes.classHelper import cCommando
 from classes.classHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV
 from classes.classHelper import COM_INFO_ACC, COM_INFO_SLT, COM_INFO_RSP
-from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
+from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD, COMMAND_LENGTH
 
 from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
 from classes.classHelper import ausgabe
@@ -40,7 +40,7 @@ class SlaveNode(cChannel):
 
             elif self.typ=="i2c":
                 try:
-                    self.__con=cConI2C(adress=0x38, version=1)
+                    self.__con=cConI2C(adress=0x38, version=1, cid=self.channelid)
 
                 except:
                     pass
@@ -56,33 +56,11 @@ class SlaveNode(cChannel):
             while self.__active==True:
                 message =""
 
-                if not self.__con is None:
-                    message = self.__con.readline().strip()
+                if self.typ=="i2c":
+                    self.__readFromI2c()
+                else:
+                    self.__readFromUSB()
 
-                if len(message)>0:
-                    #print(message)
-                    message=self.__msg_temp + message
-                    #print message
-
-                    if message[:3]==COM_PREFIX_CMD or message[:3]==COM_PREFIX_ASK:
-
-                        if message[-1:]==";":
-                            #Hier jetzt irgenwat machen
-                            newcommand=self.__parseCommand(message.replace(";", ""))
-                            newcommand.cid=self.channelid
-                            self.__queue.put(newcommand)
-
-                            self.__msg_temp=""
-                        else:
-                            self.__msg_temp =message
-
-                    elif message[:3]==COM_INFO_RSP:
-                        #sollte eigentlich nicht vorkommen
-                        ausgabe(TYPE_RSP, message, self.__debugmode)
-
-
-                    else:
-                        ausgabe( TYPE_INF, message, self.__debugmode)
 
                 time.sleep(0.01)
 
@@ -94,6 +72,47 @@ class SlaveNode(cChannel):
             self.beenden()
 
         ausgabe(TYPE_DBG, "ListenToNode ({}) beendet".format(self.port), self.__debugmode)
+
+
+    def __readFromI2c(self):
+        vals=self.__con.readline()
+
+        if len(vals)==COMMAND_LENGTH:
+            print(vals)
+
+
+
+    def __readFromUSB(self):
+
+        message=""
+
+        if not self.__con is None:
+            message = self.__con.readline().strip()
+
+        if len(message) > 0:
+            # print(message)
+            message = self.__msg_temp + message
+            # print message
+
+            if message[:3] == COM_PREFIX_CMD or message[:3] == COM_PREFIX_ASK:
+
+                if message[-1:] == ";":
+                    # Hier jetzt irgenwat machen
+                    newcommand = self.__parseSerialCommand(message.replace(";", ""))
+                    newcommand.cid = self.channelid
+                    self.__queue.put(newcommand)
+
+                    self.__msg_temp = ""
+                else:
+                    self.__msg_temp = message
+
+            elif message[:3] == COM_INFO_RSP:
+                # sollte eigentlich nicht vorkommen
+                ausgabe(TYPE_RSP, message, self.__debugmode)
+
+
+            else:
+                ausgabe(TYPE_INF, message, self.__debugmode)
 
     @property
     def active(self):
@@ -126,13 +145,13 @@ class SlaveNode(cChannel):
         return returnStatus
 
 
-    def __parseCommand(self, message):
+    def __parseSerialCommand(self, message):
 
         # Message komplett
         #print message
         lstCmd = message.split(":")
 
-        newcommand = cCommando(lstCmd)
+        newcommand = cCommando(list=lstCmd)
 
         return newcommand
 
