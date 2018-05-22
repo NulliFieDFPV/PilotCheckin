@@ -1,6 +1,6 @@
 
 
-String slot="0000"; 
+uint8_t channelId=0; 
 
 
 String stringFromByteArray(byte a[]) {
@@ -20,17 +20,10 @@ String stringFromByteArray(byte a[]) {
 
 bool sendCmdToMaster(String command) {
   
-  command=command+":SLT"+slot+";";
+  command=command+":SLT"+channelId+";";
 
-  if (CONNECTION_MODE==1 || CONNECTION_MODE==3 ) {
-    //Serial Stuff
-    writeToSerial(command, true);
-  }
 
-  if (CONNECTION_MODE==2 || CONNECTION_MODE==3) {
-    //i2stuff
-    writeToI2c(command, true);
-  }
+   writeToI2c(command, true);
 
   return true;
 
@@ -39,15 +32,8 @@ bool sendCmdToMaster(String command) {
 bool sendInfoToMaster(String message) {
 
   
-  if (CONNECTION_MODE==1 || CONNECTION_MODE==3 ) {
-    writeToSerial(message, true);
-  }
+  writeToSerial(message, true);
 
-  //Infos vielleicht nur an Serial...
-  if (CONNECTION_MODE==2 || CONNECTION_MODE==3) {
-    writeToI2c(message, true);
-  }
-  
   return true;
 
 }
@@ -56,13 +42,13 @@ bool sendInfoToMaster(String message) {
 ///////////////////////////////////////// Get PICC's UID ///////////////////////////////////
 
 
-void setSlot(String newslot) {
+void setCid(uint8_t newchannelid) {
   
-  slot=newslot;
+  channelId=newchannelid;
 
   sendInfoToMaster("");
-  sendInfoToMaster(F("This Module is now connected as Slot:"));
-  sendInfoToMaster(slot);
+  sendInfoToMaster(F("This Module is now connected as Channel-ID:"));
+  sendInfoToMaster(String(channelId));
   sendInfoToMaster("");
 
 }
@@ -78,7 +64,7 @@ void writeID( byte a[]) {
   //  Serial.print(a[i], HEX);
   //}
   //Serial.print(F(":SLT"));
-  //Serial.print(slot);
+  //Serial.print(channelid);
   //Serial.println(F(";"));
 
   sendCmdToMaster("CMD:ADD" + stringFromByteArray(a));
@@ -106,7 +92,7 @@ bool checkIn( byte a[]) {
   //  Serial.print(a[i], HEX);
   //}
   //Serial.print(F(":SLT"));
-  //Serial.print(slot);
+  //Serial.print(channelid);
   //Serial.println(F(";"));
 
   return true;
@@ -184,66 +170,3 @@ bool checkWipe() {
   
 }
 
-
-
-///////////////////////////////////////// Find ID   ///////////////////////////////////
-// mittlerweile überflüssig
-//bool findID( byte a[] ,String reason) {
-//  // TODO ask Pi, if ID exists
-//  Serial.print(F("ASK:EXS"));
-//  for ( uint8_t i = 0; i < 4; i++) {  //
-//    Serial.print(a[i], HEX);
-//  }
-//  Serial.print(F(":SLT"));
-//  Serial.print(slot);
-//  Serial.print(F(":RSN"));
-//  Serial.print(reason);
-//  Serial.println(F(";"));
-  //return true;
-
-//  return false;
-//}
-
-void readMaster() {
-
-
-  if (CONNECTION_MODE==1) {
-    //ausgelesen wird nur, wenn serial aktiviert ist
-    readSerial();
-  }
-
-  if (CONNECTION_MODE==2 || CONNECTION_MODE==3) {
-    //readI2c();
-  }
-
-
-  //wenn ein Befehl vom Pi kommt
-  //do {
-  //  if (Serial.available()>0) {
-  //    char myread=Serial.read();
-
-  //    if (String(myread)==";") {
-  //      //verarbeiten  
-  //      //Serial.println(F("PArsing..."));
-  //      parseCommand(); 
-        
-  //      for (int i = 0; i < buffercount; i++)
-  //      {
-  //          mybuffer[i] = NULL;
-  //      }
-  //      buffercount=0;
-  //      
-  //      success=true;
-        
-   //   }
-  //    else {
-  //      mybuffer[buffercount++]=myread;
-  //    }
-
-  //  }  
-  //}      
-  //while (Serial.available()>0);
-
-  return true;
-  
-}

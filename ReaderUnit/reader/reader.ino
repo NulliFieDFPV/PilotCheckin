@@ -30,10 +30,8 @@ constexpr uint8_t WIPEBUTTON_PIN = 3;     // Button pin for WipeMode
 constexpr uint8_t LED_PIN = 2;     // WS2812 Pin
 constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
 constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
-constexpr uint8_t CONNECTION_MODE = 3;  
-//C_MODE=1 USB/Serial
-// =2 I2C
-// =3 I2C + Serial
+constexpr uint8_t CMD_SIZE = 8;  
+
 
 
 char mybuffer[64];
@@ -49,60 +47,8 @@ byte masterCard[4];   // Stores master card's ID read from EEPROM
 ///////////////////////////////////////// Setup ///////////////////////////////////
 void setup() {
   
-  //Arduino Pin Configuration
-  setupLed();
-  setupWipeButton();
-  setupBuzzer();
-
-  showInitial();
+  startMeUp();
   
-  //LEDs zurücksetzen
-  colorWipe(0,0,0,5);
-
-  //Channelfarbe setzen (sollte jetzt noch schwarz sein)
-  showColorChannel();
-  
-  //Protocol Configuration
-  if (CONNECTION_MODE==1) {
-    setupSerial();
-  }
-  else if (CONNECTION_MODE==2) {
-    setupI2C();
-  }
-  else if (CONNECTION_MODE==3) {
-    setupI2C();
-    setupSerial();
-  }
-
-  setupMfrc();
-
-
-  
-  sendInfoToMaster("Pilot Access Control v0.1");
-
-  
-  //Serial.println(F("Pilot Access Control v0.1"));   // For debugging purposes
-  ShowReaderDetails();  // Show details of PCD - MFRC522 Card Reader details
-
-  checkWipe();
-  
-  //Infos
-  for ( uint8_t i = 0; i < 4; i++ ) {          // Read Master Card's UID from EEPROM
-    masterCard[i] = EEPROM.read(2 + i);    // Write it to masterCard
-  }
-  
-  sendInfoToMaster(INFOLINE);
-  sendInfoToMaster(F("Master Card's UID"));
-  sendInfoToMaster(stringFromByteArray(masterCard));
-  sendInfoToMaster(INFOLINE);
-  sendInfoToMaster(F("Everything is ready"));
-  
-  //Commando
-  //Am Pi anmelden
-  
-  sendCmdToMaster("ASK:WLK0000");
-  
-  rainbowCycle(1);    // Everything ready lets give user some feedback by cycling leds
 }
 
 
@@ -133,8 +79,6 @@ void loop () {
     else {
       normalModeOn();     // Normal mode, blue Power LED is on, all others are off
     }
-
-    readMaster();
     
   }
   while (!successRead);   //the program will not go further while you are not getting a successful read
@@ -190,4 +134,53 @@ void loop () {
 }
 
 
+void startMeUp() {
+
+  //Arduino Pin Configuration
+  setupLed();
+  setupWipeButton();
+  setupBuzzer();
+
+  showInitial();
+  
+  //LEDs zurücksetzen
+  colorWipe(0,0,0,5);
+
+  //Channelfarbe setzen (sollte jetzt noch schwarz sein)
+  showColorChannel();
+
+  setupI2C();
+  setupSerial();
+
+  setupMfrc();
+
+
+  
+  sendInfoToMaster(F("Pilot Access Control v0.1"));
+
+  
+  //Serial.println(F("Pilot Access Control v0.1"));   // For debugging purposes
+  ShowReaderDetails();  // Show details of PCD - MFRC522 Card Reader details
+
+  checkWipe();
+  
+  //Infos
+  for ( uint8_t i = 0; i < 4; i++ ) {          // Read Master Card's UID from EEPROM
+    masterCard[i] = EEPROM.read(2 + i);    // Write it to masterCard
+  }
+  
+  sendInfoToMaster(INFOLINE);
+  sendInfoToMaster(F("Master Card's UID"));
+  sendInfoToMaster(stringFromByteArray(masterCard));
+  sendInfoToMaster(INFOLINE);
+  sendInfoToMaster(F("Everything is ready"));
+  
+  //Commando
+  //Am Pi anmelden
+  
+  sayHelloI2c();
+  
+  rainbowCycle(1);    // Everything ready lets give user some feedback by cycling leds
+  
+}
 

@@ -1,5 +1,7 @@
 #include <Wire.h>
 
+String msgTmp="";
+
 bool setupI2C() {
 
   Wire.begin(I2C_ADDR);
@@ -9,6 +11,12 @@ bool setupI2C() {
   return true;
 }
 
+
+bool sayHelloI2c() {
+  
+  //sendCmdToMaster("ASK:WLK0000");
+  return true;  
+}
 
 bool oni2cRequest() {
   return true;
@@ -29,37 +37,23 @@ bool writeToI2c(String message, bool newline) {
 }
 
 
-bool readI2c() {
-
-  bool success=false;
-  
-  //wenn ein Befehl vom Pi kommt
+void readI2c(int byteCount){
+  byte cmd[byteCount];
+  uint8_t i=0;
+   
   do {
     if (Wire.available()>0) {
-      char myread=Wire.read();
+      byte myread= Wire.read();
+      cmd[i]=myread;
+      i++;
+    }
+  } while (Wire.available()>0);
 
-      if (String(myread)==";") {
-        //verarbeiten  
-        //Serial.println(F("PArsing..."));
-        parseCommand(); 
-        
-        for (int i = 0; i < buffercount; i++)
-        {
-            mybuffer[i] = NULL;
-        }
-        buffercount=0;
-        
-        success=true;
-        
-      }
-      else {
-        mybuffer[buffercount++]=myread;
-      }
+  if (sizeof(cmd)==CMD_SIZE) {
 
-    }  
-  }      
-  while (Wire.available()>0);
-
-  return success;
-  
+  }
+  else {
+    sendInfoToMaster("Ungültige Daten erhalten");
+  }
 }
+
