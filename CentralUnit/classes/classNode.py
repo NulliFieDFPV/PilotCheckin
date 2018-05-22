@@ -30,20 +30,24 @@ class SlaveNode(cChannel):
         self.__queue=queue
         self.__msg_temp=""
 
-        if self.port !="":
-            if self.typ=="usb":
+        print self.typ
+        
+        if self.typ=="usb":
+            if self.port != "":
                 try:
+
                     self.__con= cConSerial(port=self.port, baudrate=9600, timeout=5)
                     #self.__con = serial.Serial(self.port, 9600, timeout=5)
                 except:
                     pass
 
-            elif self.typ=="i2c":
-                try:
-                    self.__con=cConI2C(adress=0x38, version=1, cid=self.channelid)
+        elif self.typ=="i2c":
+            try:
+                self.__con=cConI2C(adress=0x38, version=1, cid=self.channelid)
 
-                except:
-                    pass
+            except:
+                pass
+
 
         self.__thListen=threading.Thread(target=self.__listenToNode,args=())
         self.__thListen.start()
@@ -77,10 +81,12 @@ class SlaveNode(cChannel):
     def __readFromI2c(self):
 
         try:
-            vals=self.__con.readline()
 
-            if len(vals)==COMMAND_LENGTH:
-                print(vals)
+            if not self.__con is None:
+                vals=self.__con.readline()
+
+                if len(vals)==COMMAND_LENGTH:
+                    print(vals)
 
         except Exception as e:
             print(e)
