@@ -67,7 +67,7 @@ class SlaveNode(cChannel):
                     self.__readFromUSB()
 
 
-                time.sleep(0.01)
+                time.sleep(1.0)
 
         except KeyboardInterrupt:
             ausgabe(TYPE_DBG, "Abbruch mit STRG+C ({}) beendet".format(self.port), self.__debugmode)
