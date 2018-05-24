@@ -204,10 +204,10 @@ class ioserver(object):
             if lastCardId == cardId:
                 if self.__resetCheckIn(cardId):
                     cmd=4
-                    vals=[cid,1,0,0,0,0, 0]
+                    vals=[int(cid),1,0,0,0,0, 0]
                 else:
                     cmd=4
-                    vals=[cid,0,0,0,0,0, 0]
+                    vals=[int(cid),0,0,0,0,0, 0]
 
                 self.__sendToNode(cmd, vals, cid)
 
@@ -223,7 +223,7 @@ class ioserver(object):
         chkReason=0
         wid=0
         print cardId
-        
+
         returnStatus = False
 
         if pilotId>0:
