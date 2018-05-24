@@ -76,7 +76,7 @@ class SlaveNode(cChannel):
         except:
             self.beenden()
 
-        ausgabe(TYPE_DBG, "ListenToNode ({}) beendet".format(self.port), self.__debugmode)
+        ausgabe(TYPE_DBG, "ListenToNode ({}) beendet".format(self.channelid), self.__debugmode)
 
 
     def __readFromI2c(self):
