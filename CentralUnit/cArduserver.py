@@ -298,7 +298,7 @@ class ioserver(object):
     def __sendToNode(self, cmd, vals, channelId):
 
         returnStatus = True
-        print vals
+        #print vals
 
 
         if self.__nodes.has_key(channelId):
