@@ -9,7 +9,7 @@ from classes.classHelper import COM_INFO_ACC, COM_INFO_SLT
 from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
 from classes.classNode import SlaveNode
 from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
-from classes.classHelper import ausgabe
+from classes.classHelper import ausgabe, I2C_STARTED, I2C_COLOR, I2C_CHECKIN, I2C_ADD, I2C_ACTION_RESET, I2C_ACTION_ADD
 import Queue
 
 import threading
@@ -72,8 +72,8 @@ class ioserver(object):
             for cid, channel in channels.items():
                 #Dem Modul den slot zuweisen
 
-                self.__nodes[channel.slot]=SlaveNode(cid, self.__raceid, self.__q,self.__debugmode)
-                if self.__nodes[channel.slot].connected:
+                self.__nodes[cid]=SlaveNode(cid, self.__raceid, self.__q,self.__debugmode)
+                if self.__nodes[cid].connected:
                     self.__nodesAngemeldet =self.__nodesAngemeldet +1
 
         else:
@@ -113,26 +113,24 @@ class ioserver(object):
 
             if newcommand.isValid:
 
-                ausgabe(TYPE_CMD, newcommand.commando + " " + newcommand.cardId + " " + newcommand.slot, self.__debugmode)
+                ausgabe(TYPE_CMD, newcommand.commando + " " + newcommand.cardId + " " + newcommand.cid, self.__debugmode)
 
-                if newcommand.commando == COM_COMMAND_ADD:
-                    self.__command_ADD(newcommand.cardId, newcommand.slot)
-
-                elif newcommand.commando == COM_COMMAND_RMV:
-                    self.__command_RMV(newcommand.cardId, newcommand.slot)
-
-                elif newcommand.commando == COM_COMMAND_CHK:
-                    self.__command_CHK(newcommand.cardId, newcommand.slot)
-
-                elif newcommand.commando == COM_COMMAND_COL:
-                    self.__command_COL(newcommand.slot)
-
-                elif newcommand.commando == COM_COMMAND_WLK:
+                #i2c
+                if newcommand.commando==I2C_STARTED:
                     self.__command_WLK(newcommand.cid)
 
-                elif newcommand.commando == COM_COMMAND_EXS:
-                    self.__command_EXS(newcommand.cardId, newcommand.accessory, newcommand.slot)
+                if newcommand.commando == I2C_ADD:
+                    self.__command_ADD(newcommand.cardId, newcommand.cid)
 
+                elif newcommand.commando == I2C_CHECKIN:
+                    if newcommand.action==I2C_ACTION_RESET:
+                        self.__command_RST(newcommand.cardId, newcommand.cid)
+
+                    elif newcommand.action==I2C_ACTION_ADD:
+                        self.__command_CHK(newcommand.cardId, newcommand.cid)
+
+                elif newcommand.commando == I2C_COLOR:
+                    self.__command_COL(newcommand.cid)
 
         else:
             ausgabe(TYPE_ERR,"Kein Race gewaehlt", self.__debugmode)
@@ -140,25 +138,6 @@ class ioserver(object):
 
         return returnStatus
 
-
-
-    def __command_EXS(self, cardId, cardReason, cardSlot):
-
-        returnStatus = True
-
-        aid=self.__getAttendanceId(cardId)
-
-        if aid>0:
-            cardStatus = "ok"
-        else:
-            cardStatus="failed"
-
-
-        response = "RSP:EXS{}:SLT{}:STA{}:ACC{}:".format(cardId, cardSlot, cardStatus, cardReason)
-
-        self.__sendToNode(response, cardSlot)
-
-        return returnStatus
 
 
     def __command_COL(self, cardSlot):
@@ -177,6 +156,10 @@ class ioserver(object):
     def __command_WLK(self, channelId):
 
         returnStatus = True
+
+
+        self.__sendToNode()
+
         cardSlot="00X"
 
         if channelId>0:
@@ -192,15 +175,6 @@ class ioserver(object):
 
         return returnStatus
 
-
-    def __command_RMV(self, cardId, cardSlot):
-
-        returnStatus = True
-        response = "RSP:RMV{}:SLT{}:STAok:".format(cardId, cardSlot)
-
-        self.__sendToNode(response, cardSlot)
-
-        return returnStatus
 
 
     def __command_ADD(self, cardId, cardSlot):
@@ -221,10 +195,41 @@ class ioserver(object):
         return returnStatus
 
 
-    def __command_CHK(self, cardId, cardSlot):
+
+    def __command_RST(self, cardId, cid):
 
         pilotId= self.__findCardId(cardId)
-        chkStatus="failed"
+        returnStatus = True
+
+        if pilotId>0:
+            # Pilot existiert schon mal
+            # schauen, ob er irgendwo eingecheckt ist
+
+            # LastCard zwischenspeochern, falls kein "ok" kommt
+            # beim 2. mal wird dann der checkIn zurueck gesetzt
+            lastCardId = ""
+            if cid in self.__lastCards:
+                lastCardId = self.__lastCards[cid]
+
+            if lastCardId == cardId:
+                if self.__resetCheckIn(cardId):
+                    cmd=4
+                    vals=[cid,1,0,0,0,0]
+                else:
+                    cmd=4
+                    vals=[cid,0,0,0,0,0]
+
+                self.__sendToNode(cmd, vals, cid)
+
+        return returnStatus
+
+
+    def __command_CHK(self, cardId, cid):
+
+        pilotId= self.__findCardId(cardId)
+        chkStatus=0
+        wid=0
+
         returnStatus = False
 
         if pilotId>0:
@@ -234,70 +239,58 @@ class ioserver(object):
             #LastCard zwischenspeochern, falls kein "ok" kommt
             # beim 2. mal wird dann der checkIn zurueck gesetzt
             lastCardId=""
-            if cardSlot in self.__lastCards:
-                lastCardId =self.__lastCards[cardSlot]
+            if cid in self.__lastCards:
+                self.__command_RST(cardId, cid)
 
-            if lastCardId==cardId:
-                if self.__resetCheckIn(cardId):
-                    cardStatus = "ok"
-                else:
-                    cardStatus="failed"
+                return returnStatus
 
-                response = "RSP:RST{}:SLT{}:STA{}:".format(cardId, cardSlot, cardStatus)
 
-                self.__sendToNode(response, cardSlot)
 
             channelId= self.__getCheckIn(cardId)
 
             if channelId==0:
-                #warteschlangen-id
-                wid=self.__setCheckIn(cardId, cardSlot)
+                #warteschlangen-id -> falls mal gebraucht, sollte hier wohl eher die Channel-ID zurueck gegeben werden
+                wid=self.__setCheckIn(cardId, cid)
                 if wid>0:
-                    chkStatus="ok"
+                    chkStatus=1
                     self.__lastCardId =""
-                    self.__lastCards[cardSlot]=""
+                    self.__lastCards[cid]=""
+
                 elif wid==-1:
-                    chkStatus="noatt"
+                    chkStatus=4
 
                 elif wid==-2:
-                    chkStatus="nochan"
+                    chkStatus=5
+
                 else:
-                    chkStatus="failed"
+                    chkStatus=0
                     self.__lastCardId = cardId
-                    self.__lastCards[cardSlot] = cardId
+                    self.__lastCards[cid] = cardId
             else:
-                chkStatus="failed"
+                chkStatus=0
                 self.__lastCardId = cardId
-                self.__lastCards[cardSlot] = cardId
+                self.__lastCards[cid] = cardId
 
         else:
-            chkStatus = "notreg"
+            chkStatus = 3
 
-        response="RSP:CHK{}:SLT{}:STA{}:".format(cardId, cardSlot, chkStatus)
+        cmd = 3
+        vals = [cid, chkStatus, wid, 0, 0, 0]
 
-        self.__sendToNode(response, cardSlot)
+        returnStatus= self.__sendToNode(cmd, vals, cid)
 
         return returnStatus
 
 
-    def __sendToNode(self, message, slot, nodeId=None):
+    def __sendToNode(self, cmd, vals, channelId):
 
         returnStatus = True
 
-        if not nodeId is None:
-            ausgabe(TYPE_DBG , str(nodeId), self.__debugmode)
-
-        message=message+";"
-
-        #Nodeid stellt die i2c-adresse dar
-        ausgabe( TYPE_OUT, message, self.__debugmode)
-
-        if self.__nodes.has_key(slot):
-            node=self.__nodes[slot]
-            node.sendToSerialNode(message, nodeId)
+        if self.__nodes.has_key(channelId):
+            node=self.__nodes[channelId]
+            node.sendToI2cNode(cmd, vals)
         else:
             returnStatus=False
-
 
         return returnStatus
 

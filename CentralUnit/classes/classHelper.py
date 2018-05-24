@@ -1,6 +1,9 @@
 
 import datetime
 
+COM_PREFIX_CMD = "START"
+
+
 COM_PREFIX_CMD = "CMD"
 COM_PREFIX_ASK = "ASK"
 COM_COMMAND_RMV = "RMV"
@@ -12,6 +15,15 @@ COM_COMMAND_CHK = "CHK"
 COM_INFO_SLT = "SLT"
 COM_INFO_RSP = "RSP"
 COM_INFO_ACC = "ACC"
+
+
+I2C_STARTED=0
+I2C_COLOR=1
+I2C_CHECKIN=2
+I2C_ADD=3
+
+I2C_ACTION_RESET=1
+I2C_ACTION_ADD=0
 
 TYPE_OUT = "[OUT]"
 TYPE_CMD = "[CMD]"
@@ -54,11 +66,45 @@ class cCommando(object):
         self.accessory=""
         self.cid = 0
         self.__lCommandos =[]
+        self.__lVals =[]
+        self.action = -1
+        self.cidFrom=0
 
         if kwargs.has_key("list"):
             self.__lCommandos = kwargs["list"]
 
             self.__verarbeiteListe()
+
+        if kwargs.has_key("vals"):
+            self.__lVals=kwargs["vals"]
+            self.__verarbeiteVals()
+
+
+    def __verarbeiteVals(self):
+
+        self.commando=self.__lVals[0]
+        self.cidFrom=self.__lVals[1]
+
+
+        #command
+        if self.commando==I2C_STARTED:
+            #values sind bis jetzt hier egal
+            pass
+
+        elif self.commando==I2C_COLOR:
+            #values sind bis jetzt hier egal
+            pass
+
+        elif self.commando==I2C_CHECKIN:
+            self.cardId="{0}{1}{2}{3}".format(self.__lVals[3], self.__lVals[4], self.__lVals[5], self.__lVals[6])
+
+            self.action=self.__lVals[2]
+
+
+        elif self.commando == I2C_ADD:
+            self.cardId = "{0}{1}{2}{3}".format(self.__lVals[3], self.__lVals[4], self.__lVals[5], self.__lVals[6])
+            self.action = self.__lVals[2]
+
 
 
     def __verarbeiteListe(self):
@@ -115,22 +161,6 @@ class cCommando(object):
     @property
     def isValid(self):
 
-        if self.prefix=="":
-            return False
-
-        if self.commando == COM_COMMAND_RMV or self.commando == COM_COMMAND_ADD or self.commando == COM_COMMAND_CHK:
-            if self.cardId <> "" and self.slot <> "":
-                return True
-
-        elif self.commando==COM_COMMAND_COL:
-            if self.slot<>"":
-                return True
-
-        elif self.commando == COM_COMMAND_EXS:
-            return True
-
-        elif self.commando ==COM_COMMAND_WLK:
-            return True
-
-        return False
+        #TODO Pruefungen fuer i2c-Commands
+        return True
 
