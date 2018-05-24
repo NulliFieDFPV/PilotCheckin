@@ -32,6 +32,8 @@ class SlaveNode(cChannel):
 
 
         if self.typ=="usb":
+            #wird nicht mehr funktionieren, Serial als Command-Schnittstelle ist raus.
+            # TODO - erweitern, um eine Debug-Schnittstelle herzustellen
             if self.port != "":
                 try:
 

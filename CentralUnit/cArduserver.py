@@ -51,7 +51,6 @@ class ioserver(object):
 
         ausgabe(TYPE_DBG,"INIT beendet", self.__debugmode)
 
-        return None
 
 
     def __setupRace(self, raceid):
@@ -89,7 +88,7 @@ class ioserver(object):
                 if self.__nodesAngemeldet>0:
                     newcommand=self.__q.get()
                     if not newcommand is None:
-                        ausgabe(TYPE_DBG, "Neue Meldung von {}".format(newcommand.slot), self.__debugmode)
+                        ausgabe(TYPE_DBG, "Neue Meldung von {}".format(newcommand.cid), self.__debugmode)
 
                         self.__parseCommand(newcommand)
                     else:
@@ -113,7 +112,7 @@ class ioserver(object):
 
             if newcommand.isValid:
 
-                ausgabe(TYPE_CMD, newcommand.commando + " " + newcommand.cardId + " " + newcommand.cid, self.__debugmode)
+                ausgabe(TYPE_CMD, str(newcommand.commando) + " " + newcommand.cardId + " " + str(newcommand.cid), self.__debugmode)
 
                 #i2c
                 if newcommand.commando==I2C_STARTED:
@@ -140,15 +139,16 @@ class ioserver(object):
 
 
 
-    def __command_COL(self, cardSlot):
+    def __command_COL(self, channelId):
 
         returnStatus = True
 
-        channel=self.__getChannel(cardSlot)
-        color=str(channel.color[0]).rjust(3,"0") + "." + str(channel.color[1]).rjust(3,"0")  + "." + str(channel.color[2]).rjust(3,"0")
-        response = "RSP:SETcolor:SLT{}:STAok:ACC{}:".format(cardSlot, color)
+        channel=self.__getChannel(channelId)
 
-        self.__sendToNode(response, cardSlot)
+        cmd = 2
+        vals = [channelId, channel.color[0], channel.color[1], channel.color[2], 0, 0]
+
+        self.__sendToNode(cmd, vals, channelId)
 
         return returnStatus
 
@@ -157,40 +157,29 @@ class ioserver(object):
 
         returnStatus = True
 
+        cmd = 1
+        vals = [channelId, channelId, 0, 0, 0, 0]
 
-        self.__sendToNode()
-
-        cardSlot="00X"
-
-        if channelId>0:
-            channels= self.__race.channels(True)
-
-            channel=channels[channelId]
-            cardSlot=channel.slot
-
-
-        response = "RSP:SETslot:SLT{}:STAok:".format(cardSlot)
-
-        self.__sendToNode(response, cardSlot)
+        self.__sendToNode(cmd, vals, channelId)
 
         return returnStatus
 
 
 
-    def __command_ADD(self, cardId, cardSlot):
+    def __command_ADD(self, cardId, cid):
 
 
         returnStatus=self.__race.addCard(cardId)
 
         if returnStatus:
-            chkStatus = "ok"
+            chkStatus = 1
         else:
-            chkStatus = "failed"
+            chkStatus = 0
 
+        cmd = 5
+        vals = [cid, chkStatus, 0, 0, 0, 0]
 
-        response = "RSP:ADD{}:SLT{}:STA{}:".format(cardId, cardSlot, chkStatus)
-
-        self.__sendToNode(response, cardSlot)
+        self.__sendToNode(cmd, vals, cid)
 
         return returnStatus
 
@@ -335,29 +324,28 @@ class ioserver(object):
         return channelId
 
 
-    def __getChannel(self, slot):
+    def __getChannel(self, cid):
 
-        channelId = self.__race.getChannelId(slot)
 
         channels =self.__race.channels()
-        channel=channels[channelId]
+        channel=channels[cid]
 
         return channel
 
 
-    def __setCheckIn(self, cardId, cardSlot):
+    def __setCheckIn(self, cardId, channelId):
 
         waitid = -2
 
-        cid=self.__getChannelId(cardSlot)
-        if cid==0:
+        channel=self.__getChannel(channelId)
+        if channel.cid==0:
             return waitid
 
         pilot= self.__race.getPilotByCard(cardId)
 
         pilot.resetCheckIn()
 
-        waitid = pilot.setCheckIn(cid)
+        waitid = pilot.setCheckIn(channelId)
 
 
         return waitid
@@ -414,7 +402,7 @@ class ioserver(object):
 
 
         for cid, node in self.__nodes.items():
-            ausgabe(TYPE_DBG, "Node {} beenden".format(node.slot), self.__debugmode)
+            ausgabe(TYPE_DBG, "Node {} beenden".format(node.channelid), self.__debugmode)
             node.beenden()
             #print(node.active, node.slot)
             self.__nodes[cid]=None
