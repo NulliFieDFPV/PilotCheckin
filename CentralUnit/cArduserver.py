@@ -190,7 +190,8 @@ class ioserver(object):
 
         pilotId= self.__findCardId(cardId)
         returnStatus = False
-
+        print pilotId
+        
         if pilotId>0:
             # Pilot existiert schon mal
             # schauen, ob er irgendwo eingecheckt ist
@@ -202,6 +203,7 @@ class ioserver(object):
                 lastCardId = self.__lastCards[cid]
 
                 if lastCardId == cardId:
+                    #war die gleiche karte
                     if self.__resetCheckIn(cardId):
                         cmd=4
                         vals=[int(cid),1,0,0,0,0, 0]
