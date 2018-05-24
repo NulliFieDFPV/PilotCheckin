@@ -112,7 +112,7 @@ class ioserver(object):
 
             if newcommand.isValid:
 
-                ausgabe(TYPE_CMD, str(newcommand.commando) + " " + newcommand.cardId + " " + str(newcommand.cid), self.__debugmode)
+                ausgabe(TYPE_CMD, "COM: " + str(newcommand.commando) + " CARDID: " + newcommand.cardId + " CID: " + str(newcommand.cid), self.__debugmode)
 
                 #i2c
                 if newcommand.commando==I2C_STARTED:
