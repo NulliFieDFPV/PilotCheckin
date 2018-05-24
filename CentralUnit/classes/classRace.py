@@ -51,7 +51,7 @@ class cChannel(object):
 
         for row in result:
             self.__channelname=row["channel_name"]
-            self.__channel=row["channel"]
+            self.__channel=int(row["channel"])
             self.__band=row["band"]
             self.__status=row["status"]
             self.__port=row["port"]
