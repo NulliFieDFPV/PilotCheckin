@@ -34,7 +34,6 @@ class ioserver(object):
         self.__serial=None
         self.__debugmode=debug
         self.__msg_temp = ""
-        self.__lastCardId=""
         self.__lastCards={}
         self.__nodes={}
         self.__nodeQueues={}
@@ -190,8 +189,7 @@ class ioserver(object):
 
         pilotId= self.__findCardId(cardId)
         returnStatus = False
-        print pilotId
-        
+
         if pilotId>0:
             # Pilot existiert schon mal
             # schauen, ob er irgendwo eingecheckt ist
@@ -236,8 +234,7 @@ class ioserver(object):
         if pilotId>0:
             #Pilot existiert schon mal
             # schauen, ob er irgendwo eingecheckt ist
-            self.__lastCardId = cardId
-            self.__lastCards[cid] = cardId
+
 
             #LastCard zwischenspeochern, falls kein "ok" kommt
             # beim 2. mal wird dann der checkIn zurueck gesetzt
@@ -245,7 +242,8 @@ class ioserver(object):
             if cid in self.__lastCards:
                 if self.__command_RST(cardId, cid):
                     return returnStatus
-
+                else:
+                    self.__lastCards[cid] = cardId
 
             channelId= self.__getCheckIn(cardId)
 
@@ -279,7 +277,6 @@ class ioserver(object):
             chkReason = 3
 
         if chkStatus==1:
-            self.__lastCardId = ""
             self.__lastCards[cid] = ""
 
         cmd = 3
