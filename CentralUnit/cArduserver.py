@@ -323,7 +323,7 @@ class ioserver(object):
 
         pilot= self.__race.getPilotByCard(cardId)
 
-        if pilot.inflight():
+        if pilot.inflight:
             returnStatus=False
 
         else:
