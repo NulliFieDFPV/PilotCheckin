@@ -13,7 +13,7 @@ class cChannel(object):
         self.__channel = 0
         self.__band = 0
         self.__status = 0
-        self.__slot="0000"
+        self.__address=""
         self.__port =""
         self.__typ=""
         self.__r="0"
@@ -51,11 +51,11 @@ class cChannel(object):
 
         for row in result:
             self.__channelname=row["channel_name"]
-            self.__channel=row["channel"]
+            self.__channel=int(row["channel"])
             self.__band=row["band"]
             self.__status=row["status"]
-            self.__slot=row["slot"]
             self.__port=row["port"]
+            self.__address = row["address"]
             self.__typ=row["typ"]
 
 
@@ -104,8 +104,8 @@ class cChannel(object):
         return self.__band
 
     @property
-    def slot(self):
-        return self.__slot
+    def address(self):
+        return self.__address
 
     @property
     def channelname(self):
