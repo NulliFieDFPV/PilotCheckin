@@ -85,6 +85,7 @@ bool writeToI2c(byte cmd, byte values[]) {
         Buffer[i]=values[i-2];
         break;
     }
+    sendInfoToMaster(String(Buffer[i]));
   }
   
   newMessage=true;
@@ -102,6 +103,7 @@ void readI2c(int byteCount){
     if (Wire.available()>0) {
       byte myread= Wire.read();
       cmd[i]=myread;
+      sendInfoToMaster(String(myread));
       i++;
     }
   } while (Wire.available()>0);
@@ -109,8 +111,11 @@ void readI2c(int byteCount){
   if (sizeof(cmd)==CMD_SIZE) {
     parseCmd(cmd);
   }
+  else if (cmd[0]==9) {
+    sendInfoToMaster(F("Hier kommt ein Update"));
+  }
   else {
-    sendInfoToMaster("Ungültige Daten erhalten");
+    sendInfoToMaster("Ungültige Daten erhalten (" + String(sizeof(cmd)) + ")");
   }
 }
 

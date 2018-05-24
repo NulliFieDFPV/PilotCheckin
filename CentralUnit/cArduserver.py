@@ -146,7 +146,7 @@ class ioserver(object):
         channel=self.__getChannel(channelId)
 
         cmd = 2
-        vals = [int(channelId), int(channel.color[0]), int(channel.color[1]), int(channel.color[2]), 0, 0]
+        vals = [int(channelId), int(channel.color[0]), int(channel.color[1]), int(channel.color[2]), 0, 0, 0]
 
         self.__sendToNode(cmd, vals, channelId)
 
@@ -158,7 +158,7 @@ class ioserver(object):
         returnStatus = True
 
         cmd = 1
-        vals = [int(channelId), int(channelId), 0, 0, 0, 0]
+        vals = [int(channelId), int(channelId), 0, 0, 0, 0, 0]
 
         self.__sendToNode(cmd, vals, channelId)
 
@@ -177,7 +177,7 @@ class ioserver(object):
             chkStatus = 0
 
         cmd = 5
-        vals = [cid, chkStatus, 0, 0, 0, 0]
+        vals = [cid, chkStatus, 0, 0, 0, 0, 0]
 
         self.__sendToNode(cmd, vals, cid)
 
@@ -203,10 +203,10 @@ class ioserver(object):
             if lastCardId == cardId:
                 if self.__resetCheckIn(cardId):
                     cmd=4
-                    vals=[cid,1,0,0,0,0]
+                    vals=[cid,1,0,0,0,0, 0]
                 else:
                     cmd=4
-                    vals=[cid,0,0,0,0,0]
+                    vals=[cid,0,0,0,0,0, 0]
 
                 self.__sendToNode(cmd, vals, cid)
 
@@ -264,7 +264,7 @@ class ioserver(object):
             chkStatus = 3
 
         cmd = 3
-        vals = [cid, chkStatus, wid, 0, 0, 0]
+        vals = [cid, chkStatus, wid, 0, 0, 0, 0]
 
         returnStatus= self.__sendToNode(cmd, vals, cid)
 
