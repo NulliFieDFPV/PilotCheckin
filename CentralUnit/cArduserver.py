@@ -288,7 +288,7 @@ class ioserver(object):
 
 
         cmd = 3
-        vals = [int(cid), chkStatus, int(chkReason), int(wid),  0, 0, 0]
+        vals = [int(cid), int(chkStatus), int(chkReason), int(wid),  0, 0, 0]
 
         returnStatus= self.__sendToNode(cmd, vals, cid)
 
@@ -298,7 +298,9 @@ class ioserver(object):
     def __sendToNode(self, cmd, vals, channelId):
 
         returnStatus = True
+        print vals
 
+        
         if self.__nodes.has_key(channelId):
             node=self.__nodes[channelId]
             node.sendToI2cNode(cmd, vals)
