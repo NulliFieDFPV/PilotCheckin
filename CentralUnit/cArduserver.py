@@ -210,8 +210,9 @@ class ioserver(object):
                     vals=[int(cid),0,0,0,0,0, 0]
 
                 self.__sendToNode(cmd, vals, cid)
-                returnStatus=True
 
+                self.__lastCards[cid]=""
+                returnStatus = True
 
         return returnStatus
 
@@ -231,14 +232,15 @@ class ioserver(object):
         if pilotId>0:
             #Pilot existiert schon mal
             # schauen, ob er irgendwo eingecheckt ist
+            self.__lastCardId = cardId
+            self.__lastCards[cid] = cardId
 
             #LastCard zwischenspeochern, falls kein "ok" kommt
             # beim 2. mal wird dann der checkIn zurueck gesetzt
-            lastCardId=""
+
             if cid in self.__lastCards:
                 if self.__command_RST(cardId, cid):
                     return returnStatus
-
 
 
             channelId= self.__getCheckIn(cardId)
@@ -247,10 +249,10 @@ class ioserver(object):
                 #warteschlangen-id -> falls mal gebraucht, sollte hier wohl eher die Channel-ID zurueck gegeben werden
                 wid=self.__setCheckIn(cardId, cid)
                 if wid>0:
+                    #Warteposition ist groesser als 0
                     chkReason=2
                     chkStatus=0
-                    self.__lastCardId =""
-                    self.__lastCards[cid]=""
+
 
                 elif wid==-1:
                     chkReason=4
@@ -262,17 +264,19 @@ class ioserver(object):
 
                 else:
                     chkReason=0
-                    chkStatus = 0
-                    self.__lastCardId = cardId
-                    self.__lastCards[cid] = cardId
+                    chkStatus = 1
+
             else:
-                chkReason=0
+                #Channel-ID ist groesser als 0, also ist der schon irgendwo unterwegs
+                chkReason=2
                 chkStatus = 0
-                self.__lastCardId = cardId
-                self.__lastCards[cid] = cardId
 
         else:
             chkReason = 3
+
+        if chkStatus==1:
+            self.__lastCardId = ""
+            self.__lastCards[cid] = ""
 
         cmd = 3
         vals = [int(cid), chkStatus, chkReason, int(wid),  0, 0, 0]
