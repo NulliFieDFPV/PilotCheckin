@@ -25,7 +25,7 @@ bool sayHelloI2c() {
 }
 
 bool checkInI2c(byte card[]) {
-  sendInfoToMaster(F("checkin"));
+  //sendInfoToMaster(F("checkin"));
   byte val[6]={0,card[0],card[1],card[2],card[3],0};
   writeToI2c(3,val);
   
@@ -33,14 +33,14 @@ bool checkInI2c(byte card[]) {
 
 
 bool askColorI2c() {
-  sendInfoToMaster(F("ASK Color"));
+  //sendInfoToMaster(F("ASK Color"));
   byte val[6]={0,0,0,0,0,0};
   writeToI2c(2,val);
   
 }
 
 bool resetCardI2c(byte card[]) {
-  sendInfoToMaster(F("reset"));
+  //sendInfoToMaster(F("reset"));
   byte val[6]={1,card[0],card[1],card[2],card[3],0};
   writeToI2c(3,val);
   
@@ -85,7 +85,7 @@ bool writeToI2c(byte cmd, byte values[]) {
         Buffer[i]=values[i-2];
         break;
     }
-    sendInfoToMaster(String(Buffer[i]));
+    //sendInfoToMaster(String(Buffer[i]));
   }
   
   newMessage=true;

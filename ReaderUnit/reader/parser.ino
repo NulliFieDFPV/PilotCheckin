@@ -29,7 +29,7 @@ void parseCmd(byte cmd[]) {
       
     case 3:
       //Check In Rückmeldungen
-      switch(cmd[3]) {
+      switch(cmd[2]) {
         case 1:
           //Success
           //cmd[4]=eingecheckter Kanal, später für den channellosen Check In
@@ -42,7 +42,7 @@ void parseCmd(byte cmd[]) {
           
         case 0:
           //Failed
-          switch(cmd[4]) {
+          switch(cmd[3]) {
             case 2:
               //cmd[5] -> bereits eingecheckte Kanal-ID. Schön zu wissen, brauchen wir aber erst ma nich
               message="Pilot ID " + cmdCard + " NOT Checked In At CID " + channelId;
@@ -83,7 +83,7 @@ void parseCmd(byte cmd[]) {
       
     case 4:
       //Reset Rückmeldung
-      switch (cmd[3]) {
+      switch (cmd[2]) {
         case 0:
           message="Reset Failed ID  " + cmdCard + " Via CID " + channelId;
           
@@ -106,7 +106,7 @@ void parseCmd(byte cmd[]) {
       
     case 5:
       //Karte hinzufügen
-      switch (cmd[3]) {
+      switch (cmd[2]) {
         case 0:
           message="Succesfully Added ID " + cmdCard + " Via CID " + channelId;
           

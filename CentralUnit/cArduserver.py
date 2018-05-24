@@ -229,7 +229,6 @@ class ioserver(object):
         chkStatus=0
         chkReason=0
         wid=0
-        print cardId
 
         returnStatus = False
 
@@ -250,7 +249,7 @@ class ioserver(object):
                 wid=self.__setCheckIn(cardId, cid)
                 if wid>0:
                     #Warteposition ist groesser als 0, also hats geklappt
-                    chkReason=0
+                    chkReason=wid
                     chkStatus=1
 
 
@@ -278,7 +277,7 @@ class ioserver(object):
 
                 chkReason=2
                 chkStatus = 0
-
+                wid=channelId
         else:
             chkReason = 3
 

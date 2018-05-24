@@ -87,14 +87,14 @@ class SlaveNode(cChannel):
                 vals=self.__con.readline()
                 #print "read"
                 #print vals
+                if not vals is None:
+                    if len(vals)==COMMAND_LENGTH:
+                        newcommand=self.__parseI2cCommand(vals)
+                        newcommand.cid = self.channelid
+                        self.__queue.put(newcommand)
 
-                if len(vals)==COMMAND_LENGTH:
-                    newcommand=self.__parseI2cCommand(vals)
-                    newcommand.cid = self.channelid
-                    self.__queue.put(newcommand)
-
-                else:
-                    ausgabe(TYPE_ERR, ", ".join(vals), self.__debugmode)
+                    else:
+                        ausgabe(TYPE_ERR, ", ".join(vals), self.__debugmode)
 
         except Exception as e:
             print(e)
@@ -168,6 +168,8 @@ class SlaveNode(cChannel):
             returnStatus=False
 
         return returnStatus
+
+
 
     def __parseI2cCommand(self, vals):
 

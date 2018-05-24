@@ -124,20 +124,20 @@ class cConI2C(object):
 
     def __writeToSlave(self, cmd, vals):
 
-        print "write"
-        print cmd
-        print vals
+        #print "write"
+        #print cmd
+        #print vals
 
         try:
             self.__bus.write_i2c_block_data(self.__address, cmd, vals) # 5 = I/O error
 
         except IOError, err:
                 print err
-                print "writeToSlave"
+                #print "writeToSlave"
                 return -1
 
         except Exception as e:
-                print "writeToSlave ESC"
+                #print "writeToSlave Exception"
                 print(e)
 
         return 0
@@ -153,7 +153,7 @@ class cConI2C(object):
             return self.__bus.read_i2c_block_data(self.__address, 0x09, COMMAND_LENGTH)
 
         except Exception as e:
-            print "readFromSlave ESC"
+            #print "readFromSlave Exception"
             print(e)
 
 
