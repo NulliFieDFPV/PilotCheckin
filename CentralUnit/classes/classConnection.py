@@ -100,7 +100,7 @@ class cConI2C(object):
             self.__address =kwargs.get("address")
 
         if kwargs.has_key("cid"):
-            self.__cid =kwargs.get("cid")
+            self.__cid =int(kwargs.get("cid"))
 
         if kwargs.has_key("version"):
             self.__version =kwargs.get("version")
