@@ -249,7 +249,7 @@ class ioserver(object):
                 wid=self.__setCheckIn(cardId, cid)
                 if wid>0:
                     #Warteposition ist groesser als 0, also hats geklappt
-                    chkReason=wid
+                    chkReason=cid
                     chkStatus=1
 
 
@@ -300,7 +300,7 @@ class ioserver(object):
         returnStatus = True
         print vals
 
-        
+
         if self.__nodes.has_key(channelId):
             node=self.__nodes[channelId]
             node.sendToI2cNode(cmd, vals)
