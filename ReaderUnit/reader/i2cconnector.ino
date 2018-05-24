@@ -1,65 +1,121 @@
 #include <Wire.h>
 
+String msgTmp="";
+bool newMessage=false;
+uint8_t Buffer[CMD_SIZE];
+
+  
 bool setupI2C() {
 
   Wire.begin(I2C_ADDR);
   Wire.onReceive(readI2c);
-  Wire.onRequest(oni2cRequest); // data request to slave
+  Wire.onRequest(onI2cRequest); // data request to slave
   
   return true;
 }
 
 
-bool oni2cRequest() {
+bool sayHelloI2c() {
+  
+  //Device Start senden
+  byte val[7]={0,0,0,0,0,0,0};
+  writeToI2c(1,val);
+  
+  return true;  
+}
+
+bool checkInI2c(byte card[]) {
+  //sendInfoToMaster(F("checkin"));
+  byte val[6]={0,card[0],card[1],card[2],card[3],0};
+  writeToI2c(3,val);
+  
+}
+
+
+bool askColorI2c() {
+  //sendInfoToMaster(F("ASK Color"));
+  byte val[6]={0,0,0,0,0,0};
+  writeToI2c(2,val);
+  
+}
+
+bool resetCardI2c(byte card[]) {
+  //sendInfoToMaster(F("reset"));
+  byte val[6]={1,card[0],card[1],card[2],card[3],0};
+  writeToI2c(3,val);
+  
+}
+
+bool addCardI2c(byte card[]) {
+  
+  byte val[6]={0,card[0],card[1],card[2],card[3],0};
+  writeToI2c(4,val);
+  
+}
+
+bool onI2cRequest() {
+
+  //if (newMessage) {
+    Wire.write(Buffer, CMD_SIZE);  
+
+    for (int i=0; i< CMD_SIZE;i++) {
+      Buffer[i]=255;
+    }
+    
+  //}
+  
+  newMessage=false;
   return true;
 }
 
-bool writeToI2c(String message, bool newline) {
 
-  char tmp[message.length()+1];
+bool writeToI2c(byte cmd, byte values[]) {
 
-  message.toCharArray(tmp, sizeof(tmp));
+  newMessage=false;
+
+  for (int i=0; i< CMD_SIZE;i++) {
+    switch (i) {
+      case 0:
+        Buffer[i]=cmd;
+        break;
+      case 1:
+        Buffer[i]=channelId;
+        break;
+      default:
+        Buffer[i]=values[i-2];
+        break;
+    }
+    //sendInfoToMaster(String(Buffer[i]));
+  }
   
-  Wire.beginTransmission(I2C_ADDR);
-  Wire.write(tmp);
-  Wire.endTransmission();
+  newMessage=true;
   
   return true;
 
 }
 
 
-bool readI2c() {
-
-  bool success=false;
-  
-  //wenn ein Befehl vom Pi kommt
+void readI2c(int byteCount){
+  byte cmd[byteCount];
+  uint8_t i=0;
+   
   do {
     if (Wire.available()>0) {
-      char myread=Wire.read();
+      byte myread= Wire.read();
+      cmd[i]=myread;
+      //sendInfoToMaster(String(myread));
+      i++;
+    }
+  } while (Wire.available()>0);
 
-      if (String(myread)==";") {
-        //verarbeiten  
-        //Serial.println(F("PArsing..."));
-        parseCommand(); 
-        
-        for (int i = 0; i < buffercount; i++)
-        {
-            mybuffer[i] = NULL;
-        }
-        buffercount=0;
-        
-        success=true;
-        
-      }
-      else {
-        mybuffer[buffercount++]=myread;
-      }
-
-    }  
-  }      
-  while (Wire.available()>0);
-
-  return success;
-  
+  if (sizeof(cmd)==CMD_SIZE) {
+    parseCmd(cmd);
+  }
+  else if (cmd[0]==9) {
+    //sendInfoToMaster(F("Hier kommt ein Update"));
+  }
+  else {
+    sendInfoToMaster("Ungültige Daten erhalten (" + String(sizeof(cmd)) + ")");
+  }
 }
+
