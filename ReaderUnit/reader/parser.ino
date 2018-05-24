@@ -107,14 +107,14 @@ void parseCmd(byte cmd[]) {
     case 5:
       //Karte hinzufügen
       switch (cmd[2]) {
-        case 0:
+        case 1:
           message="Succesfully Added ID " + cmdCard + " Via CID " + channelId;
           
           sendInfoToMaster(message);
           successWrite();
           break;
           
-        case 1:
+        case 0:
           
           message="Failed Adding ID " + cmdCard + " Via CID " + channelId;
           

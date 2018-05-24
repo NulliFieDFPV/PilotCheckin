@@ -55,14 +55,14 @@ bool addCardI2c(byte card[]) {
 
 bool onI2cRequest() {
 
-  if (newMessage) {
+  //if (newMessage) {
     Wire.write(Buffer, CMD_SIZE);  
 
     for (int i=0; i< CMD_SIZE;i++) {
       Buffer[i]=255;
     }
     
-  }
+  //}
   
   newMessage=false;
   return true;
