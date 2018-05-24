@@ -201,18 +201,20 @@ class ioserver(object):
             if cid in self.__lastCards:
                 lastCardId = self.__lastCards[cid]
 
-            if lastCardId == cardId:
-                if self.__resetCheckIn(cardId):
-                    cmd=4
-                    vals=[int(cid),1,0,0,0,0, 0]
-                else:
-                    cmd=4
-                    vals=[int(cid),0,0,0,0,0, 0]
+                if lastCardId == cardId:
+                    if self.__resetCheckIn(cardId):
+                        cmd=4
+                        vals=[int(cid),1,0,0,0,0, 0]
+                    else:
+                        cmd=4
+                        vals=[int(cid),0,0,0,0,0, 0]
 
-                self.__sendToNode(cmd, vals, cid)
+                    self.__sendToNode(cmd, vals, cid)
 
-                self.__lastCards[cid]=""
-                returnStatus = True
+                    self.__lastCards[cid]=""
+
+
+                    returnStatus = True
 
         return returnStatus
 
@@ -316,17 +318,16 @@ class ioserver(object):
 
     def __resetCheckIn(self, cardId):
 
-        attendies= self.__race.attendies(True)
         returnStatus = True
 
-        for aid, pilot in attendies.items():
-            if pilot.uid==cardId:
-                if pilot.inflight:
-                    returnStatus= False
-                else:
-                    pilot.resetCheckIn()
 
-                break
+        pilot= self.__findCardId(cardId)
+
+        if pilot.inflight():
+            returnStatus=False
+
+        else:
+            pilot.resetCheckIn()
 
 
         return returnStatus
