@@ -206,7 +206,7 @@ class ioserver(object):
                         cmd=4
                         vals=[int(cid),1,0,0,0,0, 0]
                         returnStatus = True
-                        
+
                     else:
                         cmd=4
                         vals=[int(cid),0,0,0,0,0, 0]
@@ -272,6 +272,13 @@ class ioserver(object):
 
             else:
                 #Channel-ID ist groesser als 0, also ist der schon irgendwo unterwegs
+                if cid in self.__lastCards:
+                    if cardId==self.__lastCards[cid]:
+                        #da hat er ein zweites mal eingecheckt
+                        # dann darf er jetzt auch resetten
+                        if self.__command_RST(cardId, cid):
+                            return returnStatus
+                        
                 chkReason=2
                 chkStatus = 0
 
