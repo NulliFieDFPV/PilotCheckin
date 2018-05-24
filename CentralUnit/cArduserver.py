@@ -189,7 +189,7 @@ class ioserver(object):
     def __command_RST(self, cardId, cid):
 
         pilotId= self.__findCardId(cardId)
-        returnStatus = True
+        returnStatus = False
 
         if pilotId>0:
             # Pilot existiert schon mal
@@ -210,6 +210,8 @@ class ioserver(object):
                     vals=[int(cid),0,0,0,0,0, 0]
 
                 self.__sendToNode(cmd, vals, cid)
+                returnStatus=True
+
 
         return returnStatus
 
@@ -234,9 +236,8 @@ class ioserver(object):
             # beim 2. mal wird dann der checkIn zurueck gesetzt
             lastCardId=""
             if cid in self.__lastCards:
-                self.__command_RST(cardId, cid)
-
-                return returnStatus
+                if self.__command_RST(cardId, cid):
+                    return returnStatus
 
 
 
