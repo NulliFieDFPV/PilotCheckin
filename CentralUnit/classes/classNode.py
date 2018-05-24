@@ -161,7 +161,7 @@ class SlaveNode(cChannel):
             self.__con.write(message)
 
         else:
-            ausgabe(TYPE_ERR, "Slot {} nicht verfuegbar".format(self.slot))
+            ausgabe(TYPE_ERR, "Slot {} nicht verfuegbar".format(self.channelid))
 
             returnStatus=False
 
@@ -187,7 +187,7 @@ class SlaveNode(cChannel):
 
     def __del__(self):
 
-        ausgabe(TYPE_DBG, "Node ({}) beendet".format(self.slot), self.__debugmode)
+        ausgabe(TYPE_DBG, "Node ({}) beendet".format(self.channelid), self.__debugmode)
 
 
     def beenden(self):
@@ -196,7 +196,7 @@ class SlaveNode(cChannel):
 
         self.__active=False
 
-        ausgabe(TYPE_DBG, "Node ({}) beenden".format(self.slot), self.__debugmode)
+        ausgabe(TYPE_DBG, "Node ({}) beenden".format(self.channelid), self.__debugmode)
 
         #Threads beenden
         #Serial schliessen

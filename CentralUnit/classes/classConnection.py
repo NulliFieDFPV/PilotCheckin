@@ -118,7 +118,7 @@ class cConI2C(object):
             self.__bus = smbus.SMBus(1)
 
 
-        self.__writeToSlave(1,[self.__cid,0,0,0,0,0,0])
+        self.__writeToSlave(1,[self.__cid,self.__cid,0,0,0,0,0])
 
 
     def __writeToSlave(self, cmd, vals):
