@@ -1,6 +1,9 @@
 
 import datetime
 
+COM_PREFIX_CMD = "START"
+
+
 COM_PREFIX_CMD = "CMD"
 COM_PREFIX_ASK = "ASK"
 COM_COMMAND_RMV = "RMV"
@@ -13,12 +16,29 @@ COM_INFO_SLT = "SLT"
 COM_INFO_RSP = "RSP"
 COM_INFO_ACC = "ACC"
 
+
+I2C_STARTED=1
+I2C_COLOR=2
+I2C_CHECKIN=3
+I2C_ADD=4
+
+I2C_SETCOL=2
+I2C_SETCHANID=1
+I2C_SETADD=5
+I2C_SETRESET=4
+I2C_SETCHECKIN=3
+
+I2C_ACTION_RESET=1
+I2C_ACTION_ADD=0
+
 TYPE_OUT = "[OUT]"
 TYPE_CMD = "[CMD]"
 TYPE_RSP = "[RSP]"
 TYPE_DBG = "[DBG]"
 TYPE_ERR = "[ERR]"
 TYPE_INF = "[INF]"
+
+COMMAND_LENGTH=8
 
 def ausgabe(type, message,debugmode=False):
 
@@ -41,19 +61,56 @@ def ausgabe(type, message,debugmode=False):
 
 class cCommando(object):
 
-    def __init__(self, commandos):
+    def __init__(self, **kwargs):
 
         self.prefix=""
 
-        self.commando=""
+        self.commando=-1
         self.slot=""
         self.slotBefore = ""
         self.cardId=""
         self.accessory=""
         self.cid = 0
-        self.__lCommandos = commandos
+        self.__lCommandos =[]
+        self.__lVals =[]
+        self.action = -1
+        self.cidFrom=0
 
-        self.__verarbeiteListe()
+        if kwargs.has_key("list"):
+            self.__lCommandos = kwargs["list"]
+
+            self.__verarbeiteListe()
+
+        if kwargs.has_key("vals"):
+            self.__lVals=kwargs["vals"]
+            self.__verarbeiteVals()
+
+
+    def __verarbeiteVals(self):
+
+        self.commando=self.__lVals[0]
+        self.cidFrom=self.__lVals[1]
+
+
+        #command
+        if self.commando==I2C_STARTED:
+            #values sind bis jetzt hier egal
+            pass
+
+        elif self.commando==I2C_COLOR:
+            #values sind bis jetzt hier egal
+            pass
+
+        elif self.commando==I2C_CHECKIN:
+            self.cardId="{0}{1}{2}{3}".format(DecToHex(self.__lVals[3]), DecToHex(self.__lVals[4]), DecToHex(self.__lVals[5]), DecToHex(self.__lVals[6]))
+
+            self.action=self.__lVals[2]
+
+
+        elif self.commando == I2C_ADD:
+            self.cardId = "{0}{1}{2}{3}".format(self.__lVals[3], self.__lVals[4], self.__lVals[5], self.__lVals[6])
+            self.action = self.__lVals[2]
+
 
 
     def __verarbeiteListe(self):
@@ -110,22 +167,12 @@ class cCommando(object):
     @property
     def isValid(self):
 
-        if self.prefix=="":
-            return False
+        #TODO Pruefungen fuer i2c-Commands
+        return True
 
-        if self.commando == COM_COMMAND_RMV or self.commando == COM_COMMAND_ADD or self.commando == COM_COMMAND_CHK:
-            if self.cardId <> "" and self.slot <> "":
-                return True
 
-        elif self.commando==COM_COMMAND_COL:
-            if self.slot<>"":
-                return True
+def DecToHex(val):
 
-        elif self.commando == COM_COMMAND_EXS:
-            return True
+    newval="{0:x}".format(val).upper()
 
-        elif self.commando ==COM_COMMAND_WLK:
-            return True
-
-        return False
-
+    return newval
