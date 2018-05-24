@@ -129,7 +129,7 @@ class cConI2C(object):
         print vals
 
         try:
-            self.__bus.write_i2c_block_data(self.__address, cmd, [0,1]) # 5 = I/O error
+            self.__bus.write_i2c_block_data(self.__address, cmd, vals) # 5 = I/O error
 
         except IOError, err:
                 print err
