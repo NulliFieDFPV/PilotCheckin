@@ -60,3 +60,54 @@ KERNEL=="spidev*", RUN="/bin/sh -c 'chgrp -R spi /dev/spidev* && chmod -R g+rw /
 sudo nano /etc/udev/rules.d/99-i2c.rules
 KERNEL=="i2c*", RUN="/bin/sh -c 'chgrp -R i2c /dev/i2c* && chmod -R g+rw /dev/i2c*'"
 
+
+
+
+CentralUnit nach /etc/CentralUnit kopieren
+
+sudo nano /etc/systemd/system/pyarduserver.service
+[Unit]
+Description=My Python PilotCheckin
+After=syslog.target
+
+[Service]  
+Type=simple
+User=pyarduuser
+Group=pyarduuser
+WorkingDirectory=/etc/CentralUnit
+ExecStart=/etc/CentralUnit/cArduserver.py
+SyslogIdentifier=pilotcheckin
+StandardOutput=syslog
+StandardError=syslog 
+Restart=always
+RestartSec=3  
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+sudo nano /etc/logrotate.d/pilotcheckin
+
+/var/log/pilotcheckin.log {
+    su root syslog
+    daily
+    rotate 5
+    compress
+    delaycompress
+    missingok
+    postrotate
+        systemctl restart rsyslog > /dev/null
+    endscript
+}
+
+systemctl restart rsyslog
+
+
+
+sudo nano /etc/rsyslog.d/50-default.conf
+
+:programname,isequal,"pilotcheckin"         /var/log/pilotcheckin.log
+& ~
+
+
