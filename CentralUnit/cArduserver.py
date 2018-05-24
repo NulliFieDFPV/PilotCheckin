@@ -205,6 +205,8 @@ class ioserver(object):
                     if self.__resetCheckIn(cardId):
                         cmd=4
                         vals=[int(cid),1,0,0,0,0, 0]
+                        returnStatus = True
+                        
                     else:
                         cmd=4
                         vals=[int(cid),0,0,0,0,0, 0]
@@ -214,7 +216,7 @@ class ioserver(object):
                     self.__lastCards[cid]=""
 
 
-                    returnStatus = True
+
 
         return returnStatus
 
