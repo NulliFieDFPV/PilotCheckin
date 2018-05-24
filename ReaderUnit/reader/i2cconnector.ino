@@ -103,7 +103,7 @@ void readI2c(int byteCount){
     if (Wire.available()>0) {
       byte myread= Wire.read();
       cmd[i]=myread;
-      sendInfoToMaster(String(myread));
+      //sendInfoToMaster(String(myread));
       i++;
     }
   } while (Wire.available()>0);
