@@ -10,7 +10,7 @@ from classes.classHelper import COM_INFO_ACC, COM_INFO_SLT
 from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
 from classes.classNode import SlaveNode
 from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
-from classes.classHelper import ausgabe, I2C_STARTED, I2C_COLOR, I2C_CHECKIN, I2C_ADD, I2C_ACTION_RESET, I2C_ACTION_ADD
+from classes.classHelper import ausgabe, I2C_STARTED, I2C_COLOR, I2C_CHECKIN, I2C_ADD, I2C_ACTION_RESET, I2C_ACTION_ADD, I2C_SETCOL, I2C_SETCHANID, I2C_SETADD, I2C_SETRESET, I2C_SETCHECKIN
 import Queue
 
 import threading
@@ -147,7 +147,7 @@ class ioserver(object):
 
         channel=self.__getChannel(channelId)
 
-        cmd = 2
+        cmd = I2C_SETCOL
         vals = [int(channelId), int(channel.color[0]), int(channel.color[1]), int(channel.color[2]), 0, 0, 0]
 
         self.__sendToNode(cmd, vals, channelId)
@@ -159,7 +159,7 @@ class ioserver(object):
 
         returnStatus = True
 
-        cmd = 1
+        cmd = I2C_SETCHANID
         vals = [int(channelId), int(channelId), 0, 0, 0, 0, 0]
 
         self.__sendToNode(cmd, vals, channelId)
@@ -178,7 +178,7 @@ class ioserver(object):
         else:
             chkStatus = 0
 
-        cmd = 5
+        cmd = I2C_SETADD
         vals = [int(cid), chkStatus, 0, 0, 0, 0, 0]
 
         self.__sendToNode(cmd, vals, cid)
@@ -203,14 +203,14 @@ class ioserver(object):
                 lastCardId = self.__lastCards[cid]
 
                 if lastCardId == cardId:
+                    cmd = I2C_SETRESET
                     #war die gleiche karte
                     if self.__resetCheckIn(cardId):
-                        cmd=4
+
                         vals=[int(cid),1,0,0,0,0, 0]
                         returnStatus = True
 
                     else:
-                        cmd=4
                         vals=[int(cid),0,0,0,0,0, 0]
 
                     self.__sendToNode(cmd, vals, cid)
@@ -289,7 +289,7 @@ class ioserver(object):
             self.__lastCards[cid] = cardId
 
 
-        cmd = 3
+        cmd = I2C_SETCHECKIN
         vals = [int(cid), int(chkStatus), int(chkReason), 0,  0, 0, 0]
 
         returnStatus= self.__sendToNode(cmd, vals, cid)
