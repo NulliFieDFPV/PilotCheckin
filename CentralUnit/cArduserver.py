@@ -87,7 +87,7 @@ class ioserver(object):
                 if self.__nodesAngemeldet>0:
                     newcommand=self.__q.get()
                     if not newcommand is None:
-                        if newcommand.commando>0:
+                        if newcommand.commando>0 and newcommand.commando<255:
                             ausgabe(TYPE_DBG, "Neue Meldung von {}".format(newcommand.cid), self.__debugmode)
 
                             self.__parseCommand(newcommand)
