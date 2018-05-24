@@ -222,7 +222,8 @@ class ioserver(object):
         chkStatus=0
         chkReason=0
         wid=0
-
+        print cardId
+        
         returnStatus = False
 
         if pilotId>0:
