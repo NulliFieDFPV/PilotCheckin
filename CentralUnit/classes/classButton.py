@@ -21,11 +21,14 @@ class cButton(object):
 
     def __setup(self):
 
-        GPIO.setmode(GPIO.BCM)
+        #GPIO.setmode(GPIO.BCM)
+        #GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
         GPIO.add_event_detect(self.__pin, GPIO.RISING, callback=my_callback)  # add rising edge detection on a channel
         GPIO.add_event_detect(self.__pin, GPIO.FALLING, callback=my_callback2)  # add rising edge detection on a channel
 
-        GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
 
 
 
