@@ -218,6 +218,7 @@ class ioserver(object):
 
         pilotId= self.__findCardId(cardId)
         chkStatus=0
+        chkReason=0
         wid=0
 
         returnStatus = False
@@ -242,30 +243,35 @@ class ioserver(object):
                 #warteschlangen-id -> falls mal gebraucht, sollte hier wohl eher die Channel-ID zurueck gegeben werden
                 wid=self.__setCheckIn(cardId, cid)
                 if wid>0:
-                    chkStatus=1
+                    chkReason=2
+                    chkStatus=0
                     self.__lastCardId =""
                     self.__lastCards[cid]=""
 
                 elif wid==-1:
-                    chkStatus=4
+                    chkReason=4
+                    chkStatus = 0
 
                 elif wid==-2:
-                    chkStatus=5
+                    chkReason=5
+                    chkStatus = 0
 
                 else:
-                    chkStatus=0
+                    chkReason=0
+                    chkStatus = 0
                     self.__lastCardId = cardId
                     self.__lastCards[cid] = cardId
             else:
-                chkStatus=0
+                chkReason=0
+                chkStatus = 0
                 self.__lastCardId = cardId
                 self.__lastCards[cid] = cardId
 
         else:
-            chkStatus = 3
+            chkReason = 3
 
         cmd = 3
-        vals = [cid, chkStatus, wid, 0, 0, 0, 0]
+        vals = [cid, chkStatus, chkReason, wid,  0, 0, 0]
 
         returnStatus= self.__sendToNode(cmd, vals, cid)
 
