@@ -9,9 +9,15 @@ class cButton(object):
 
         self.__setup();
 
+        self.__listen()
 
     def __listen(self):
+        while self.__active:
 
+            input_state = GPIO.input(self.__pin)
+            if input_state == False:
+                print('Button Pressed')
+                time.sleep(0.2)
 
     def __setup(self):
 
@@ -21,12 +27,7 @@ class cButton(object):
 
         GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-        while self.__active:
 
-            input_state = GPIO.input(self.__pin)
-            if input_state == False:
-                print('Button Pressed')
-                time.sleep(0.2)
 
 
 def my_callback(channel):
