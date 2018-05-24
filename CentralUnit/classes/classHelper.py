@@ -165,7 +165,7 @@ class cCommando(object):
         return True
 
 
-def DecToHex(self, val):
+def DecToHex(val):
 
     newval="{0:x}".format(val).upper()
 
