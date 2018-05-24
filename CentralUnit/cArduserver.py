@@ -214,7 +214,9 @@ class ioserver(object):
         return returnStatus
 
 
+
     def __command_CHK(self, cardId, cid):
+
 
         pilotId= self.__findCardId(cardId)
         chkStatus=0

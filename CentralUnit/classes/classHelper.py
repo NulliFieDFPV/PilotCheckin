@@ -96,7 +96,7 @@ class cCommando(object):
             pass
 
         elif self.commando==I2C_CHECKIN:
-            self.cardId="{0}{1}{2}{3}".format(self.__lVals[3], self.__lVals[4], self.__lVals[5], self.__lVals[6])
+            self.cardId="{0}{1}{2}{3}".format(DecToHex(self.__lVals[3]), DecToHex(self.__lVals[4]), DecToHex(self.__lVals[5]), DecToHex(self.__lVals[6]))
 
             self.action=self.__lVals[2]
 
@@ -164,3 +164,9 @@ class cCommando(object):
         #TODO Pruefungen fuer i2c-Commands
         return True
 
+
+def DecToHex(self, val):
+
+    newval="{0:x}".format(val).upper()
+
+    return newval
