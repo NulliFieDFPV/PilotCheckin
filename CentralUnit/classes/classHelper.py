@@ -59,7 +59,7 @@ class cCommando(object):
 
         self.prefix=""
 
-        self.commando=""
+        self.commando=-1
         self.slot=""
         self.slotBefore = ""
         self.cardId=""
