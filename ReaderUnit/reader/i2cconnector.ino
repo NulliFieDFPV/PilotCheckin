@@ -33,7 +33,7 @@ bool checkInI2c(byte card[]) {
 
 
 bool askColorI2c() {
-  
+  sendInfoToMaster(F("ASK Color"));
   byte val[7]={channelId,0,0,0,0,0,0};
   writeToI2c(1,val);
   

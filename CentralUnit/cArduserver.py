@@ -146,7 +146,7 @@ class ioserver(object):
         channel=self.__getChannel(channelId)
 
         cmd = 2
-        vals = [channelId, channel.color[0], channel.color[1], channel.color[2], 0, 0]
+        vals = [int(channelId), int(channel.color[0]), int(channel.color[1]), int(channel.color[2]), 0, 0]
 
         self.__sendToNode(cmd, vals, channelId)
 

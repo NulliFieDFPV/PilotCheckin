@@ -87,7 +87,7 @@ class SlaveNode(cChannel):
                 vals=self.__con.readline()
                 print "read"
                 print vals
-                
+
                 if len(vals)==COMMAND_LENGTH:
                     newcommand=self.__parseI2cCommand(vals)
                     newcommand.cid = self.channelid

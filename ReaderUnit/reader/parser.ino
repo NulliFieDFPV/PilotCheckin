@@ -16,6 +16,7 @@ void parseCmd(byte cmd[]) {
 
     case 1:
       //channelid
+
       setCid(cmd[2]);
       
       askColorI2c();
