@@ -249,9 +249,9 @@ class ioserver(object):
                 #warteschlangen-id -> falls mal gebraucht, sollte hier wohl eher die Channel-ID zurueck gegeben werden
                 wid=self.__setCheckIn(cardId, cid)
                 if wid>0:
-                    #Warteposition ist groesser als 0
-                    chkReason=2
-                    chkStatus=0
+                    #Warteposition ist groesser als 0, also hats geklappt
+                    chkReason=0
+                    chkStatus=1
 
 
                 elif wid==-1:
@@ -263,8 +263,9 @@ class ioserver(object):
                     chkStatus = 0
 
                 else:
-                    chkReason=0
-                    chkStatus = 1
+                    #kann eigentlich nicht vorkommen
+                    chkReason=6
+                    chkStatus = 0
 
             else:
                 #Channel-ID ist groesser als 0, also ist der schon irgendwo unterwegs
@@ -286,7 +287,7 @@ class ioserver(object):
         else:
             self.__lastCards[cid] = cardId
 
-            
+
         cmd = 3
         vals = [int(cid), chkStatus, chkReason, int(wid),  0, 0, 0]
 
