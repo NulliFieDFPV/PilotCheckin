@@ -241,11 +241,7 @@ class ioserver(object):
             #LastCard zwischenspeochern, falls kein "ok" kommt
             # beim 2. mal wird dann der checkIn zurueck gesetzt
 
-            if cid in self.__lastCards:
-                if self.__command_RST(cardId, cid):
-                    return returnStatus
 
-            self.__lastCards[cid] = cardId
 
             channelId= self.__getCheckIn(cardId)
 
@@ -278,7 +274,7 @@ class ioserver(object):
                         # dann darf er jetzt auch resetten
                         if self.__command_RST(cardId, cid):
                             return returnStatus
-                        
+
                 chkReason=2
                 chkStatus = 0
 
@@ -287,7 +283,10 @@ class ioserver(object):
 
         if chkStatus==1:
             self.__lastCards[cid] = ""
+        else:
+            self.__lastCards[cid] = cardId
 
+            
         cmd = 3
         vals = [int(cid), chkStatus, chkReason, int(wid),  0, 0, 0]
 
