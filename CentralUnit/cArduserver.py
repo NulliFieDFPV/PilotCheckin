@@ -349,7 +349,7 @@ class ioserver(object):
         waitid = -2
 
         channel=self.__getChannel(channelId)
-        if channel.cid==0:
+        if channel.channelid==0:
             return waitid
 
         pilot= self.__race.getPilotByCard(cardId)
