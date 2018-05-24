@@ -288,7 +288,7 @@ class ioserver(object):
 
 
         cmd = 3
-        vals = [int(cid), chkStatus, chkReason, int(wid),  0, 0, 0]
+        vals = [int(cid), chkStatus, int(chkReason), int(wid),  0, 0, 0]
 
         returnStatus= self.__sendToNode(cmd, vals, cid)
 
