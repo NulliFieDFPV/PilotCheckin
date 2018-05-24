@@ -19,7 +19,7 @@ bool sayHelloI2c() {
   
   //Device Start senden
   byte val[7]={0,0,0,0,0,0,0};
-  writeToI2c(0,val);
+  writeToI2c(1,val);
   
   return true;  
 }
@@ -27,7 +27,7 @@ bool sayHelloI2c() {
 bool checkInI2c(byte card[]) {
   
   byte val[7]={channelId,0,card[0],card[1],card[2],card[3],0};
-  writeToI2c(2,val);
+  writeToI2c(3,val);
   
 }
 
@@ -35,21 +35,21 @@ bool checkInI2c(byte card[]) {
 bool askColorI2c() {
   sendInfoToMaster(F("ASK Color"));
   byte val[7]={channelId,0,0,0,0,0,0};
-  writeToI2c(1,val);
+  writeToI2c(2,val);
   
 }
 
 bool resetCardI2c(byte card[]) {
   
   byte val[7]={channelId,1,card[0],card[1],card[2],card[3],0};
-  writeToI2c(2,val);
+  writeToI2c(3,val);
   
 }
 
 bool addCardI2c(byte card[]) {
   
   byte val[7]={channelId,0,card[0],card[1],card[2],card[3],0};
-  writeToI2c(3,val);
+  writeToI2c(4,val);
   
 }
 
@@ -112,7 +112,7 @@ void readI2c(int byteCount){
     parseCmd(cmd);
   }
   else if (cmd[0]==9) {
-    sendInfoToMaster(F("Hier kommt ein Update"));
+    //sendInfoToMaster(F("Hier kommt ein Update"));
   }
   else {
     sendInfoToMaster("Ungültige Daten erhalten (" + String(sizeof(cmd)) + ")");
