@@ -17,94 +17,39 @@
 */
 
 #include <EEPROM.h>     // We are going to read and write PICC's UIDs from/to EEPROM
-#include <SPI.h>        // RC522 Module uses SPI protocol
-#include <MFRC522.h>  // Library for Mifare RC522 Devices
 
 #define COMMON_ANODE
 constexpr uint8_t ANZAHL_LEDS =4;
 constexpr uint8_t CHANNEL_LED =3;
 constexpr uint8_t MODE_LED=0;
 
+constexpr byte I2C_ADDR=0x38;
 
 constexpr uint8_t BUZZER_PIN = 5;     // Set Relay Pin
 constexpr uint8_t WIPEBUTTON_PIN = 3;     // Button pin for WipeMode
 constexpr uint8_t LED_PIN = 2;     // WS2812 Pin
 constexpr uint8_t RST_PIN = 9;     // Configurable, see typical pin layout above
 constexpr uint8_t SS_PIN = 10;     // Configurable, see typical pin layout above
+constexpr uint8_t CMD_SIZE = 8;  
 
 
-constexpr uint8_t CONNECTION_MODE = 1;  
-//C_MODE=1 USB/Serial
-// =2 I2C
 
-
-constexpr char INFOLINE[29] = "----------------------------";
+char mybuffer[64];
+int buffercount=0;
+uint8_t channelId=0; 
 
 bool programMode = false;  // initialize programming mode to false
-
-uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reader
-
+constexpr char INFOLINE[29] = "----------------------------";
 
 byte readCard[4];   // Stores scanned ID read from RFID Module
 byte masterCard[4];   // Stores master card's ID read from EEPROM
 
 
-MFRC522 mfrc522(SS_PIN, RST_PIN);
-
-
 ///////////////////////////////////////// Setup ///////////////////////////////////
 void setup() {
   
-  //Arduino Pin Configuration
-  setupLed();
-  setupWipeButton();
-  setupBuzzer();
-
-  showInitial();
+  startMeUp();
   
-  //LEDs zurücksetzen
-  colorWipe(0,0,0,5);
-
-  //Channelfarbe setzen (sollte jetzt noch schwarz sein)
-  showColorChannel();
-  
-  //Protocol Configuration
-  if (CONNECTION_MODE==1) {
-    setupSerial();
-  }
-
-  SPI.begin();           // MFRC522 Hardware uses SPI protocol
-  mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
-
-
-  //If you set Antenna Gain to Max it will increase reading distance
-  //mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max);
-  
-  sendInfoToMaster("Pilot Access Control v0.1");
-
-  
-  //Serial.println(F("Pilot Access Control v0.1"));   // For debugging purposes
-  ShowReaderDetails();  // Show details of PCD - MFRC522 Card Reader details
-
-  checkWipe();
-  
-  //Infos
-  for ( uint8_t i = 0; i < 4; i++ ) {          // Read Master Card's UID from EEPROM
-    masterCard[i] = EEPROM.read(2 + i);    // Write it to masterCard
-  }
-  
-  sendInfoToMaster(INFOLINE);
-  sendInfoToMaster("Master Card's UID");
-  sendInfoToMaster(stringFromByteArray(masterCard));
-  sendInfoToMaster(INFOLINE);
-  sendInfoToMaster("Everything is ready");
-  
-  //Commando
-  //Am Pi anmelden
-  
-  sendCmdToMaster("ASK:WLK0000");
-  
-  rainbowCycle(1);    // Everything ready lets give user some feedback by cycling leds
 }
 
 
@@ -114,7 +59,11 @@ void setup() {
 ///////////////////////////////////////// Main Loop ///////////////////////////////////
 void loop () {
 
-  writeToSerial("Waiting Pilot's Card to be scanned", true);
+
+  uint8_t successRead;    // Variable integer to keep if we have Successful Read from Reade
+
+
+  sendInfoToMaster(F("Waiting Pilot's Card to be scanned"));
   //Hauptschleife, zuerst RFID auslesen, dann Pi
   do {
 
@@ -131,8 +80,6 @@ void loop () {
     else {
       normalModeOn();     // Normal mode, blue Power LED is on, all others are off
     }
-
-    readMaster();
     
   }
   while (!successRead);   //the program will not go further while you are not getting a successful read
@@ -151,8 +98,8 @@ void loop () {
     if ( isMaster(readCard) ) { 
       //Im Program Mode zuerst prüfen, ob es die Master Card ist -> Programm Mode verlassen 
       //und Loop beenden
-      sendInfoToMaster("Master Card Scanned");
-      sendInfoToMaster("Exiting Program Mode");
+      sendInfoToMaster(F("Master Card Scanned"));
+      sendInfoToMaster(F("Exiting Program Mode"));
       sendInfoToMaster(INFOLINE);
       
       programMode = false;
@@ -163,9 +110,9 @@ void loop () {
     //Wenn man hier ankommt, wird es keine Master Card sein, dann soll die wohl hinzu gefügt wreden
     writeID(readCard);
   
-    sendInfoToMaster("Adding Pilot's Card...");
+    sendInfoToMaster(F("Adding Pilot's Card..."));
     sendInfoToMaster(INFOLINE);
-    sendInfoToMaster("Scan a Pilot's Card to ADD or REMOVE to List");
+    sendInfoToMaster(F("Scan a Pilot's Card to ADD or REMOVE to List"));
   }
 
   //********** Normal Mode **********
@@ -173,9 +120,9 @@ void loop () {
     if ( isMaster(readCard)) {    
       // Wenn es die Master Card ist - Program Mode starten
       programMode = true;
-        sendInfoToMaster("Hello Master - Entered Program Mode");
-        sendInfoToMaster("Scan a Pilot's Card to ADD or REMOVE to List");
-        sendInfoToMaster("Scan Master Card again to Exit Program Mode");
+        sendInfoToMaster(F("Hello Master - Entered Program Mode"));
+        sendInfoToMaster(F("Scan a Pilot's Card to ADD or REMOVE to List"));
+        sendInfoToMaster(F("Scan Master Card again to Exit Program Mode"));
         sendInfoToMaster(INFOLINE);
     }
     else {
@@ -188,4 +135,52 @@ void loop () {
 }
 
 
+void startMeUp() {
+
+  //Arduino Pin Configuration
+  setupLed();
+  setupWipeButton();
+  setupBuzzer();
+
+  showInitial();
+  
+  //LEDs zurücksetzen
+  colorWipe(0,0,0,5);
+
+  //Channelfarbe setzen (sollte jetzt noch schwarz sein)
+  showColorChannel();
+
+  setupI2C();
+  setupSerial();
+
+  setupMfrc();
+
+  sendInfoToMaster(F("Pilot Access Control v0.1"));
+
+
+  
+  //Serial.println(F("Pilot Access Control v0.1"));   // For debugging purposes
+  ShowReaderDetails();  // Show details of PCD - MFRC522 Card Reader details
+
+  checkWipe();
+  
+  //Infos
+  for ( uint8_t i = 0; i < 4; i++ ) {          // Read Master Card's UID from EEPROM
+    masterCard[i] = EEPROM.read(2 + i);    // Write it to masterCard
+  }
+  
+  sendInfoToMaster(INFOLINE);
+  sendInfoToMaster(F("Master Card's UID"));
+  sendInfoToMaster(stringFromByteArray(masterCard));
+  sendInfoToMaster(INFOLINE);
+  sendInfoToMaster(F("Everything is ready"));
+  
+  //Commando
+  //Am Pi anmelden
+  
+  sayHelloI2c();
+  
+  rainbowCycle(1);    // Everything ready lets give user some feedback by cycling leds
+  
+}
 
