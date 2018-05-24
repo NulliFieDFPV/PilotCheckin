@@ -158,7 +158,7 @@ class ioserver(object):
         returnStatus = True
 
         cmd = 1
-        vals = [channelId, channelId, 0, 0, 0, 0]
+        vals = [1, 1, 0, 0, 0, 0]
 
         self.__sendToNode(cmd, vals, channelId)
 
