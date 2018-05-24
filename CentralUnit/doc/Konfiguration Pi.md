@@ -111,3 +111,6 @@ sudo nano /etc/rsyslog.d/50-default.conf
 & ~
 
 
+
+sudo aptitude install python-pip
+sudo pip install --upgrade OPi.GPIO
