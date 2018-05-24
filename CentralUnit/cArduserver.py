@@ -242,8 +242,8 @@ class ioserver(object):
             if cid in self.__lastCards:
                 if self.__command_RST(cardId, cid):
                     return returnStatus
-                else:
-                    self.__lastCards[cid] = cardId
+
+            self.__lastCards[cid] = cardId
 
             channelId= self.__getCheckIn(cardId)
 
