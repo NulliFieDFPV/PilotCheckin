@@ -23,7 +23,7 @@ class cButton(object):
 
     def __setup(self):
 
-        #GPIO.setmode(GPIO.BCM)
+        GPIO.setmode(GPIO.BCM)
         #GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(self.__pin, GPIO.IN)
 
