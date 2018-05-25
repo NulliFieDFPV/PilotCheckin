@@ -3,6 +3,7 @@ from modules.mDb import db
 from classes.classPilot import cPilot
 from config.cfg_db import tables as sqltbl
 import time
+import threading
 
 class cChannel(object):
 
@@ -55,7 +56,11 @@ class cChannel(object):
             self.__band=row["band"]
             self.__status=row["status"]
             self.__port=row["port"]
-            self.__address = row["address"]
+            try:
+                self.__address = row["address"]
+            except:
+                pass
+
             self.__typ=row["typ"]
 
 
@@ -130,6 +135,8 @@ class cRace(object):
 
         self.__rid=rid
         self.__racedate=None
+        self.__raceStarted=False
+
         self.__startDelay =0
 
         self.__attendies={}
@@ -238,7 +245,7 @@ class cRace(object):
         return self.__attendies
 
 
-    def starteHeat(self):
+    def starteHeat(self, duration=0):
 
         anzahl = 0
 
@@ -262,7 +269,33 @@ class cRace(object):
                                 #TODO An diesem Channel kann jetzt ein anderer starten, und zwar der pilot mit waitposition=2 und dem gleichen channel wie dieser pilot
                                 pilot.stopHeat()
 
+
+        if anzahl>0:
+            self.__raceStarted =True
+
+
+        if duration>0:
+            self.__thAutoStopp=threading.Thread(target=self.__autoStop,args=([duration]))
+            self.__thAutoStopp.start()
+
+
         return anzahl
+
+
+    def __autoStop(self, duration):
+
+        delay=0.01
+
+        running=0.0
+
+        while self.__raceStarted:
+
+            if running>=duration:
+                self.stoppeHeat()
+                break
+
+            time.sleep(delay)
+            running = running + delay
 
 
     def stoppeHeat(self):
@@ -281,6 +314,9 @@ class cRace(object):
                         pilot.stopHeat()
                         if self.__startDelay>0:
                                 time.sleep(self.__startDelay)
+
+
+        self.__raceStarted =False
 
         return anzahl
 
@@ -343,6 +379,11 @@ class cRace(object):
     @property
     def rid(self):
         return self.__rid
+
+
+    @property
+    def raceStarted(self):
+        return self.__raceStarted
 
 
     @property
