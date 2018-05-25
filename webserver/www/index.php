@@ -21,7 +21,7 @@ function generateRaceCbo($raceid) {
     $sql = "SELECT * FROM traces WHERE status=-1 ORDER BY race_name";
 
 
-    $cbo="<select id=\"race\" name=\"race\">";
+    $cbo="<select id=\"race\" name=\"race\" style=\"width:100%;\" onChange=\"this.form.submit()\">";
 
     foreach ($db->query($sql) as $row) {
 
@@ -50,13 +50,16 @@ $cbo=generateRaceCbo($raceid);
 
 <body>
 
-    <section>
+    <section style=" padding:10px; background-color:#ff0000;" width="100%">
+
     <form action="index.php" method="get">
       <?PHP echo $cbo; ?>
-      <input type="submit" value="Laden">
     </form>
-    </<section>
+    </section>
 
+
+<br>
+<section>
     <?PHP
     if ($raceid>0) {
         //Teilnehmer laden
@@ -66,6 +69,6 @@ $cbo=generateRaceCbo($raceid);
 
     }
     ?>
-
+</section>
 </body>
 </html>
