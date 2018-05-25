@@ -130,6 +130,8 @@ class cRace(object):
 
         self.__rid=rid
         self.__racedate=None
+        self.__raceStarted=False
+
         self.__startDelay =0
 
         self.__attendies={}
@@ -262,6 +264,9 @@ class cRace(object):
                                 #TODO An diesem Channel kann jetzt ein anderer starten, und zwar der pilot mit waitposition=2 und dem gleichen channel wie dieser pilot
                                 pilot.stopHeat()
 
+        if anzahl>0:
+            self.__raceStarted =True
+
         return anzahl
 
 
@@ -281,6 +286,9 @@ class cRace(object):
                         pilot.stopHeat()
                         if self.__startDelay>0:
                                 time.sleep(self.__startDelay)
+
+        if anzahl>=len(attendies):
+            self.__raceStarted =False
 
         return anzahl
 
@@ -343,6 +351,11 @@ class cRace(object):
     @property
     def rid(self):
         return self.__rid
+
+
+    @property
+    def raceStarted(self):
+        return self.__raceStarted
 
 
     @property

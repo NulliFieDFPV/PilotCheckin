@@ -20,7 +20,10 @@ class cRacestarter(object):
         while self.__active:
             print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if self.__startButton.pressed:
-                print "button pressed"
+                if self.__race.raceStarted:
+                    print "Race Stoppen"
+                else:
+                    print "Race Starten"
 
             time.sleep(1)
 
