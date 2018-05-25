@@ -2,12 +2,13 @@ import OPi.GPIO as GPIO
 import time
 
 class cButton(object):
-    def __init__(self, pin):
+    def __init__(self, pin, funcCallbacḱ):
 
         self.__pin=pin
         self.__active=True
 
         self.__setup();
+        self.callback=funcCallbacḱ
 
         self.__listen()
 
@@ -23,26 +24,11 @@ class cButton(object):
 
         #GPIO.setmode(GPIO.BCM)
         #GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.__pin, GPIO.IN)
 
-        GPIO.add_event_detect(self.__pin, GPIO.RISING, callback=my_callback)  # add rising edge detection on a channel
-        GPIO.add_event_detect(self.__pin, GPIO.FALLING, callback=my_callback2)  # add rising edge detection on a channel
-
+        GPIO.add_event_detect(self.__pin, GPIO.RISING, callback=self.callback)  # add rising edge detection on a channel
 
 
-
-
-
-def my_callback(channel):
-    print('This is a edge event callback function!')
-    print('Edge detected on channel %s'%channel)
-    print('This is run in a different thread to your main program')
-
-
-def my_callback2(channel):
-    print('This is a edge event callback function!')
-    print('Edge detected on channel %s'%channel)
-    print('This is run in a different thread to your main program')
 
 
 

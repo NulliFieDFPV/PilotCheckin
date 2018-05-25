@@ -1,6 +1,25 @@
 from classes.classRace import cRace
+from classes.classButton import cButton
 
 import time
+import datetime
+
+class cRacestarter(object):
+
+    def __init__(self, raceid=1):
+
+        self.__startPin=18
+        self.__race=cRace(raceid)
+        self.__active=True
+
+        self.__startButton=cButton(self.__startPin, self.__race.starteHeat)
+
+    def racing(self):
+
+        while self.__active:
+            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            time.sleep(1)
 
 
 def starten(raceid=1):
@@ -46,4 +65,7 @@ def starten(raceid=1):
                 time.sleep(1)
 
 
-starten(1)
+if __name__=="__main__":
+    race=cRacestarter(1)
+    race.racing()
+
