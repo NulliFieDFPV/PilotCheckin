@@ -52,7 +52,7 @@ $cbo=generateRaceCbo($raceid);
 
     <section>
     <form action="index.php" method="get">
-      <? echo $cbo; ?>
+      <?PHP echo $cbo; ?>
       <input type="submit" value="Laden">
     </form>
     </<section>
