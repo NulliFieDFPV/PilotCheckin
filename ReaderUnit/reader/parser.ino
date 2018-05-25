@@ -24,7 +24,7 @@ void parseCmd(byte cmd[]) {
       
     case 2:
       //Farbe
-      setColor(cmd[3], cmd[4], cmd[5]);
+      setColor(cmd[2], cmd[3], cmd[4]);
       break;
       
     case 3:
