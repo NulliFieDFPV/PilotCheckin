@@ -89,7 +89,9 @@ class cConI2C(object):
     def __init__(self, **kwargs):
 
         self.__debug=False
-        self.__address = 0x38
+        
+        self.__address = 0x3
+
         self.__version = 1
         self.__cid =0
 
@@ -97,7 +99,12 @@ class cConI2C(object):
             self.__debug =(kwargs.get("debug")==1)
 
         if kwargs.has_key("address"):
-            self.__address =kwargs.get("address")
+            try:
+                self.__address = int(kwargs.get("address"))
+                print self.__address
+
+            except:
+                print "Adresse ungueltig"
 
         if kwargs.has_key("cid"):
             self.__cid =int(kwargs.get("cid"))
