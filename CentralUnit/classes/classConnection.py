@@ -98,7 +98,9 @@ class cConI2C(object):
 
         if kwargs.has_key("address"):
             try:
-                self.__address = hex(kwargs.get("address"))
+                self.__address = hex(int(kwargs.get("address")))
+                print self.__address
+                
             except:
                 print "Adresse ungueltig"
 
