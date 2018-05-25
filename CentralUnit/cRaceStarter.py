@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from classes.classRace import cRace
 from classes.classButton import cButton
 
