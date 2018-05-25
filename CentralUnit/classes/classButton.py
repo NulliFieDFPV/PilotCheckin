@@ -26,6 +26,7 @@ class cButton(object):
         GPIO.setmode(GPIO.BOARD)
         #GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(self.__pin, GPIO.IN)
+        GPIO.remove_event_detect(self.__pin)
 
         GPIO.add_event_detect(self.__pin, GPIO.RISING, callback=starteRace)  # add rising edge detection on a channel
 
