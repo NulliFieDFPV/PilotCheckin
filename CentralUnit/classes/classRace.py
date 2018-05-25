@@ -266,7 +266,8 @@ class cRace(object):
                                 pilot.stopHeat()
 
         if duration>0:
-            self.thAutoStopp=threading.Thread(target=self.__autoStop,args=([duration]))
+            self.__thAutoStopp=threading.Thread(target=self.__autoStop,args=([duration]))
+            self.__thAutoStopp.start()
 
         if anzahl>0:
             self.__raceStarted =True
