@@ -287,8 +287,8 @@ class cRace(object):
                         if self.__startDelay>0:
                                 time.sleep(self.__startDelay)
 
-        if anzahl>=len(attendies):
-            self.__raceStarted =False
+
+        self.__raceStarted =False
 
         return anzahl
 
