@@ -69,7 +69,7 @@ function ladeTabelle($raceid) {
 
         $resultWaiting=$db->query($sql)->fetchAll();
 
-        $tablerow .="<td><div>";
+        $tablerow .="<td style=\"vertical-align: top\"><div  style=\"vertical-align: top\">";
 
         foreach ($resultWaiting as $rowWaitlist) {
             if ($rowWaitlist["status"]==1) {
