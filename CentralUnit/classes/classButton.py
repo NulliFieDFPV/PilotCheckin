@@ -11,7 +11,7 @@ class cButton(object):
         self.__setup(callBack)
         self.callback=callBack
 
-        self.__listen()
+        #self.__listen()
 
     def __listen(self):
         while self.__active:
