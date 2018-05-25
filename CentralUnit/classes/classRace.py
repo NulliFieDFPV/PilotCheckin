@@ -280,8 +280,8 @@ class cRace(object):
 
     def __autoStop(self, duration):
 
-        print duration
-        
+        print duration, self.__raceStarted
+
         running=0
         while self.__raceStarted:
 
