@@ -1,5 +1,5 @@
  
-<?
+<?PHP
 error_reporting(E_ALL);
 include "includes/monitor.inc.php";
 
@@ -57,7 +57,7 @@ $cbo=generateRaceCbo($raceid);
     </form>
     </<section>
 
-    <?
+    <?PHP
     if ($raceid>0) {
         //Teilnehmer laden
 
