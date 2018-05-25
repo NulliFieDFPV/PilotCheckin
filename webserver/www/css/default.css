@@ -1,2 +1,93 @@
+section.navi ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
 
 
+aside.pilots ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+aside.pilots a {
+    color:#000000;
+    text-decoration: None;
+}
+
+
+aside.pilots a:hover {
+    color:#ccc;
+    text-decoration: None;
+}
+
+
+section.navi {
+    padding:10px;
+    background-color:#111111;
+    box-shadow: 0em 0.8em 0.8em grey;
+}
+
+section.navi li {
+    float: left;
+}
+
+html, body {
+    padding:0;
+    margin:0;
+}
+html, body, option, select {
+    font-family:verdana, sans-serif;;
+    font-size:1.1em;
+}
+
+body {
+    background-color:#c1eeff;
+}
+
+section.main, section.race  {
+    margin:0.5em;
+}
+
+section.race {
+    padding:1em;
+    background-color:#fff;
+
+
+}
+
+aside.pilots {
+    float: left;
+    width: 30%;
+    background-color:#FFF;
+    padding:1em;
+
+}
+
+section.pilot {
+
+    display:block;
+    background-color:#FFF;
+    padding:1em;
+
+}
+
+section.navi li a {
+    display: block;
+    padding: 0.5em;
+    margin:0.3em;
+    background-color: #dddddd;
+    color:#000000;
+    text-decoration: None;
+    -webkit-border-radius: 1em;
+    -moz-border-radius: 1em;
+    border-radius: 0.5em;
+    box-shadow: 0.1em 0.2em 5px grey;
+}
+
+section.navi li a:hover {
+    background-color:#333333;
+    color:#ffffff;
+}
