@@ -2,13 +2,14 @@ import OPi.GPIO as GPIO
 import time
 
 class cButton(object):
-    def __init__(self, pin, funcCallbacḱ):
+
+    def __init__(self, pin, callBack):
 
         self.__pin=pin
         self.__active=True
 
         self.__setup();
-        self.callback=funcCallbacḱ
+        self.callback=callBack
 
         self.__listen()
 
