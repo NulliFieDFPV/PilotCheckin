@@ -12,7 +12,7 @@ class cRacestarter(object):
         self.__race=cRace(raceid)
         self.__active=True
 
-        self.__startButton=cButton(self.__startPin, self.__race.starteHeat)
+        self.__startButton=cButton(self.__startPin)
 
     def racing(self):
 
