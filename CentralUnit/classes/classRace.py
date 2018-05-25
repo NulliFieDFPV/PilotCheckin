@@ -3,6 +3,7 @@ from modules.mDb import db
 from classes.classPilot import cPilot
 from config.cfg_db import tables as sqltbl
 import time
+import threading
 
 class cChannel(object):
 
@@ -240,7 +241,7 @@ class cRace(object):
         return self.__attendies
 
 
-    def starteHeat(self):
+    def starteHeat(self, duration=0):
 
         anzahl = 0
 
@@ -264,10 +265,26 @@ class cRace(object):
                                 #TODO An diesem Channel kann jetzt ein anderer starten, und zwar der pilot mit waitposition=2 und dem gleichen channel wie dieser pilot
                                 pilot.stopHeat()
 
+        if duration>0:
+            self.thAutoStopp=threading.Thread(target=self.__autoStop,args=([duration]))
+
         if anzahl>0:
             self.__raceStarted =True
 
         return anzahl
+
+
+    def __autoStop(self, duration):
+
+        running=0
+        while self.__raceStarted:
+
+            if running>=duration:
+                self.stoppeHeat()
+                break
+
+            time.sleep(1)
+            running = running + 1
 
 
     def stoppeHeat(self):
