@@ -253,9 +253,9 @@ class cRace(object):
         attendies=self.attendies(True)
 
         # Fuer jeden Channel mal die LAge checken und einen piloten starten
-        for cid, channel in self.__channels.items():
+        for cid, channel in sorted(self.__channels.items()):
 
-            for aid, pilot in attendies.items():
+            for aid, pilot in sorted(attendies.items()):
                 if pilot.checkedin():
                     if pilot.cid()==cid:
                         if pilot.waitposition() == 1:
@@ -305,7 +305,7 @@ class cRace(object):
 
         attendies=self.attendies(True)
 
-        for aid, pilot in attendies.items():
+        for aid, pilot in sorted(attendies.items()):
             if pilot.checkedin():
                 if pilot.waitposition() == 1:
                     if pilot.inflight:
