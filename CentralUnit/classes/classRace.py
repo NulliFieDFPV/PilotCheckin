@@ -56,7 +56,11 @@ class cChannel(object):
             self.__band=row["band"]
             self.__status=row["status"]
             self.__port=row["port"]
-            self.__address = row["address"]
+            try:
+                self.__address = int(row["address"])
+            except:
+                pass
+            
             self.__typ=row["typ"]
 
 
