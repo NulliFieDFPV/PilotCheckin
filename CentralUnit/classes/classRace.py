@@ -265,12 +265,15 @@ class cRace(object):
                                 #TODO An diesem Channel kann jetzt ein anderer starten, und zwar der pilot mit waitposition=2 und dem gleichen channel wie dieser pilot
                                 pilot.stopHeat()
 
+
+        if anzahl>0:
+            self.__raceStarted =True
+
+
         if duration>0:
             self.__thAutoStopp=threading.Thread(target=self.__autoStop,args=([duration]))
             self.__thAutoStopp.start()
 
-        if anzahl>0:
-            self.__raceStarted =True
 
         return anzahl
 
@@ -286,7 +289,7 @@ class cRace(object):
             print "autostopp laeuft"
             print running
             print duration
-            
+
             time.sleep(1)
             running = running + 1
 
