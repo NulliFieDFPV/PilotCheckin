@@ -16,6 +16,7 @@ class cRacestarter(object):
 
     def racing(self):
 
+        print "racing"
         while self.__active:
             print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
