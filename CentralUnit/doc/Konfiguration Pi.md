@@ -97,7 +97,7 @@ git clone git@github.com:NulliFieDFPV/PilotCheckin.git
 cd PilotCheckin
 
 sudo mkdir /etc/CentralUnit
-sudo cp -r CentralUnit/ /etc/CentralUnit 
+sudo cp -r CentralUnit/ /etc 
 
 chmod +x /etc/CentralUnit/cArduserver.py /etc/CentralUnit/cRaceStarter.py
 
@@ -106,7 +106,7 @@ chmod +x /etc/CentralUnit/cArduserver.py /etc/CentralUnit/cRaceStarter.py
 Arduserver als Dienst installieren
 ---------------------------------------------------------------------------------
 
-sudo nano /etc/systemd/system/pyarduserver.service
+sudo nano /etc/systemd/system/pilotcheckin.service
 
 [Unit]
 Description=My Python PilotCheckin
@@ -132,7 +132,7 @@ WantedBy=multi-user.target
 Racestarter als Dienst installieren
 ---------------------------------------------------------------------------------
 
-sudo nano /etc/systemd/system/pyracestarter.service
+sudo nano /etc/systemd/system/racestarter.service
 
 [Unit]
 Description=My Python RaceStarter
@@ -154,13 +154,27 @@ RestartSec=3
 WantedBy=multi-user.target
 ---------------------------------------------------------------------------------
 
+sudo systemctl enable pilotcheckin
+sudo systemctl enable racestarter
+
+sudo systemctl start pilotcheckin
+sudo systemctl start racestarter
+
+sudo systemctl status pilotcheckin
+sudo systemctl status racestarter
+
+sudo systemctl stop pilotcheckin
+sudo systemctl stop racestarter
+
+sudo systemctl restart pilotcheckin
+sudo systemctl restart racestarter
 ---------------------------------------------------------------------------------
 Log Rotate für Arduserver
 ---------------------------------------------------------------------------------
 sudo nano /etc/logrotate.d/pilotcheckin
 
 /var/log/pilotcheckin.log {
-    su root syslog
+    su root adm
     daily
     rotate 5
     compress
@@ -179,7 +193,7 @@ sudo nano /etc/logrotate.d/racestarter
 
 
 /var/log/racestarter.log {
-    su root syslog
+    su root adm
     daily
     rotate 5
     compress
@@ -194,7 +208,9 @@ sudo nano /etc/logrotate.d/racestarter
 ---------------------------------------------------------------------------------
 Log Rotate neu starten
 ---------------------------------------------------------------------------------
-systemctl restart rsyslog
+
+sudo systemctl restart rsyslog
+
 ---------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------
@@ -209,7 +225,10 @@ sudo nano /etc/rsyslog.d/50-default.conf
 & ~
 
 ---------------------------------------------------------------------------------
-
+Log Rotate erzwingen
+---------------------------------------------------------------------------------
+sudo logrotate -d /etc/logrotate.d/pilotcheckin
+sudo logrotate -d /etc/logrotate.d/racestarter
 
 ---------------------------------------------------------------------------------
 
