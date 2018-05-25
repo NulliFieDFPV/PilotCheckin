@@ -281,19 +281,18 @@ class cRace(object):
     def __autoStop(self, duration):
 
         print duration, self.__raceStarted
+        delay=0.01
 
-        running=0
+        running=0.0
+
         while self.__raceStarted:
 
             if running>=duration:
                 self.stoppeHeat()
                 break
-            print "autostopp laeuft"
-            print running
-            print duration
 
-            time.sleep(1)
-            running = running + 1
+            time.sleep(delay)
+            running = running + delay
 
 
     def stoppeHeat(self):
