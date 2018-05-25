@@ -111,7 +111,8 @@ class cConI2C(object):
 
     def __setupConnection(self):
 
-        print self.__address
+        self.__address=0x39
+
         if self.__version==1:
             self.__bus=smbus.SMBus(0)
         else:
