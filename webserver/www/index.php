@@ -22,7 +22,7 @@ function generateRaceCbo($raceid) {
 
 
     $cbo="<select id=\"race\" name=\"race\" style=\"width:100%;\" onChange=\"this.form.submit()\">";
-
+    $cbo .="<option value=\"0\">Race w&auml;hlen</option>";
     foreach ($db->query($sql) as $row) {
 
         $cbo .="<option ";
