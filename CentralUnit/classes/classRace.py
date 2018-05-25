@@ -283,7 +283,10 @@ class cRace(object):
             if running>=duration:
                 self.stoppeHeat()
                 break
-
+            print "autostopp laeuft"
+            print running
+            print duration
+            
             time.sleep(1)
             running = running + 1
 
