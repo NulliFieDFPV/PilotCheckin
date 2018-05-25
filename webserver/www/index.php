@@ -48,9 +48,9 @@ $cbo=generateRaceCbo($raceid);
 
 </head>
 
-<body>
+<body style="background-color:#c1eeff">
 
-    <section style=" padding:10px; background-color:#ff0000;" width="100%">
+    <section style=" padding:10px; background-color:#0000cc;" width="100%">
 
     <form action="index.php" method="get">
       <?PHP echo $cbo; ?>
