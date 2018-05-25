@@ -1,49 +1,43 @@
+#!/usr/bin/python
+
 from classes.classRace import cRace
+from classes.classButton import cButton
 
 import time
+import datetime
+
+class cRacestarter(object):
+
+    def __init__(self, raceid=1):
+
+        self.__startPin=18
+        self.__race=cRace(raceid)
+        self.__active=True
+
+        self.__startButton=cButton(self.__startPin)
 
 
-def starten(raceid=1):
 
-    race=cRace(raceid)
+    def racing(self):
 
-    while True:
-        iDauer=0
+        print "racing"
 
-        print "Race starten"
+        while self.__active:
 
-        anzahl=race.starteHeat()
-        if anzahl>0:
-            while iDauer<60:
+            #print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-                print "noch {} Sekunden InFlight".format(60-iDauer)
+            if self.__startButton.pressed:
+                if self.__race.raceStarted:
+                    print "Race Stoppen"
+                    self.__race.stoppeHeat()
+                else:
+                    print "Race Starten"
+                    self.__race.starteHeat(30)
 
-                iDauer=iDauer+1
-                time.sleep(1)
-        else:
-            print "keine Piloten gestartet"
-
-        iDauer = 0
-
-        print "Race stoppen"
-
-        anzahl =race.stoppeHeat()
-        if anzahl > 0:
-            while iDauer<10:
-
-                print "noch {} Sekunden bis zum naechsten Race".format(10-iDauer)
-                iDauer = iDauer + 1
-                time.sleep(1)
-
-        else:
-            print "keine Piloten gelandet,"
-
-            while iDauer<30:
-
-                print "noch {} Sekunden Bis zum naeschsten Race".format(30-iDauer)
-
-                iDauer=iDauer+1
-                time.sleep(1)
+            time.sleep(0.05)
 
 
-starten(1)
+if __name__=="__main__":
+    race=cRacestarter(1)
+    race.racing()
+
