@@ -22,10 +22,12 @@ class cRacestarter(object):
             if self.__startButton.pressed:
                 if self.__race.raceStarted:
                     print "Race Stoppen"
+                    self.__race.stoppeHeat()
                 else:
                     print "Race Starten"
+                    self.__race.starteHeat()
 
-            time.sleep(1)
+            time.sleep(0.5)
 
 
 def starten(raceid=1):
