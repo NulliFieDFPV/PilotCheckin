@@ -89,7 +89,7 @@ class cConI2C(object):
     def __init__(self, **kwargs):
 
         self.__debug=False
-        self.__address = 0x38
+        self.__address = 0x3
         self.__version = 1
         self.__cid =0
 
@@ -97,7 +97,10 @@ class cConI2C(object):
             self.__debug =(kwargs.get("debug")==1)
 
         if kwargs.has_key("address"):
-            self.__address =kwargs.get("address")
+            try:
+                self.__address = hex(kwargs.get("address"))
+            except:
+                print "Adresse ungueltig"
 
         if kwargs.has_key("cid"):
             self.__cid =int(kwargs.get("cid"))
@@ -111,7 +114,6 @@ class cConI2C(object):
 
     def __setupConnection(self):
 
-        self.__address=0x39
 
         if self.__version==1:
             self.__bus=smbus.SMBus(0)
