@@ -8,7 +8,7 @@ class cButton(object):
         self.__pin=pin
         self.__active=True
 
-        self.__setup();
+        self.__setup(callBack)
         self.callback=callBack
 
         self.__listen()
@@ -21,13 +21,13 @@ class cButton(object):
                 print('Button Pressed')
                 time.sleep(0.2)
 
-    def __setup(self):
+    def __setup(self, callBack):
 
         GPIO.setmode(GPIO.BCM)
         #GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(self.__pin, GPIO.IN)
 
-        GPIO.add_event_detect(self.__pin, GPIO.RISING, callback=self.callback)  # add rising edge detection on a channel
+        GPIO.add_event_detect(self.__pin, GPIO.RISING, callback=callBack)  # add rising edge detection on a channel
 
 
 
