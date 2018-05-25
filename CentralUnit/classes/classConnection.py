@@ -89,7 +89,9 @@ class cConI2C(object):
     def __init__(self, **kwargs):
 
         self.__debug=False
+        
         self.__address = 0x3
+
         self.__version = 1
         self.__cid =0
 

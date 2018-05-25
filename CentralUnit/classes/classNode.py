@@ -45,7 +45,6 @@ class SlaveNode(cChannel):
         elif self.typ=="i2c":
             try:
                 self.__con=cConI2C(address=self.address, version=1, cid=self.channelid)
-
             except:
                 pass
 
