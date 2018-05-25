@@ -60,7 +60,7 @@ class cChannel(object):
                 self.__address = int(row["address"])
             except:
                 pass
-            
+
             self.__typ=row["typ"]
 
 
