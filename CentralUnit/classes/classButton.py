@@ -3,13 +3,12 @@ import time
 
 class cButton(object):
 
-    def __init__(self, pin, callBack):
+    def __init__(self, pin):
 
         self.__pin=pin
         self.__active=True
 
-        self.__setup(callBack)
-        self.callback=callBack
+        self.__setup()
 
         #self.__listen()
 
@@ -30,7 +29,7 @@ class cButton(object):
             return False
 
 
-    def __setup(self, callBack):
+    def __setup(self):
 
         GPIO.setmode(GPIO.BOARD)
         #GPIO.setup(self.__pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
