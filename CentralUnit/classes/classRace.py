@@ -258,9 +258,14 @@ class cRace(object):
 
     def starteHeat(self, duration=0):
 
+        self.__getData()
+
         anzahl = 0
 
         attendies=self.attendies(True)
+
+        #TODO Workaround, damit keiner nachspringt (s.u.), ist glaub ich aber eh bloedsinn
+        self.stoppeHeat()
 
         # Fuer jeden Channel mal die LAge checken und einen piloten starten
         for cid, channel in sorted(self.__channels.items()):
@@ -278,13 +283,14 @@ class cRace(object):
                                         time.sleep(self.__startDelay)
                             else:
                                 #TODO An diesem Channel kann jetzt ein anderer starten, und zwar der pilot mit waitposition=2 und dem gleichen channel wie dieser pilot
+                                #Als Worakround vorher einmal stoppen ausfuehren
                                 pilot.stopHeat()
 
 
         if anzahl>0:
             self.__raceStarted =True
 
-        print "stoptime", self.__autoStopTime
+
         if self.__autoStopTime>0:
             self.__thAutoStopp=threading.Thread(target=self.__autoStop,args=([self.__autoStopTime]))
             self.__thAutoStopp.start()
@@ -296,7 +302,6 @@ class cRace(object):
     def __autoStop(self, duration):
 
         delay=0.01
-        print duration
         running=0.0
 
         while self.__raceStarted:
@@ -314,17 +319,20 @@ class cRace(object):
         anzahl=0
 
         attendies=self.attendies(True)
+        for cid, channel in sorted(self.__channels.items()):
 
-        for aid, pilot in sorted(attendies.items()):
-            if pilot.checkedin():
-                if pilot.waitposition() == 1:
-                    if pilot.inflight:
-                        anzahl=anzahl+1
-                        print pilot.callsign, "stop", self.__channels[pilot.cid()].channelname
+            for aid, pilot in sorted(attendies.items()):
 
-                        pilot.stopHeat()
-                        if self.__startDelay>0:
-                                time.sleep(self.__startDelay)
+                if pilot.checkedin():
+                    if pilot.cid() == cid:
+                        if pilot.waitposition() == 1:
+                            if pilot.inflight:
+                                anzahl=anzahl+1
+                                print pilot.callsign, "stop", self.__channels[pilot.cid()].channelname
+
+                                pilot.stopHeat()
+                                if self.__startDelay>0:
+                                        time.sleep(self.__startDelay)
 
 
         self.__raceStarted =False
