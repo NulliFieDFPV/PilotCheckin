@@ -127,7 +127,7 @@ function updateRaceOptions($raceid, $arrRaceOptions) {
                 
                 $sql= "UPDATE traceoptions SET option_value=? WHERE RID=? AND option_name=?";
                 $statement= $db->prepare($sql);
-                $statement->execute([$value, $key]);
+                $statement->execute([$value, $raceid, $key]);
         }
     
     }
