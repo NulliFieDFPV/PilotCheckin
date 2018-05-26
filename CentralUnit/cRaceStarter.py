@@ -36,8 +36,8 @@ class cRacestarter(object):
                 else:
 
                     newRaceId=checkCurrentRace(self.__race.rid)
-                    if newRaceId != self.__race.rid:
-                        self.__race = cRace(newRaceId)
+                    #if newRaceId != self.__race.rid:
+                    #    self.__race = cRace(newRaceId)
 
                     print "Race Starten"
                     self.__race.starteHeat()
