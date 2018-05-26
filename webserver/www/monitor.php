@@ -49,9 +49,7 @@ $cbo=generateRaceCbo($raceid);
     </form>
     </section>
 
-
-<br>
-<section class=\"main\">
+    <section class="racetable">
     <?PHP
     if ($raceid>0) {
         //Teilnehmer laden
@@ -61,6 +59,6 @@ $cbo=generateRaceCbo($raceid);
 
     }
     ?>
-</section>
+    </section>
 </body>
 </html>

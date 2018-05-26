@@ -25,5 +25,29 @@ function generateRaceCbo($raceid) {
 
 
 
+
+function generateOptionCbo($oid) {
+
+
+    $arrOptions=["Races","Channel"];
+    
+    $cbo="<select id=\"option\" name=\"option\" style=\"width:100%;\" onChange=\"this.form.submit()\">";
+    $cbo .="<option value=\"-1\">Option w&auml;hlen</option>";
+    foreach ($arrOptions as $key => $option) {
+
+        $cbo .="<option ";
+        if ($oid==$key) {
+            $cbo .="selected ";
+        }
+        $cbo .="value=\"".$key."\">".$option."</option>";
+    }
+
+    $cbo .="</select>";
+
+    return $cbo;
+}
+
+
+
 ?>
 
