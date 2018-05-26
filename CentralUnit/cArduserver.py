@@ -94,6 +94,15 @@ class ioserver(object):
         newraceid=checkCurrentRace(self.__race.rid)
 
         if newraceid != self.__race.rid:
+
+            for cid, node in self.__nodes.items():
+                ausgabe(TYPE_DBG, "Node {} beenden".format(node.channelid), self.__debugmode)
+                node.beenden()
+                # print(node.active, node.slot)
+                self.__nodes[cid] = None
+
+            time.sleep(1)
+
             self.__setupRace(newraceid)
         else:
 
