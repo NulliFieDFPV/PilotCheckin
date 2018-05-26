@@ -129,6 +129,7 @@ class cChannel(object):
     def typ(self):
         return self.__typ
 
+
 class cRace(object):
 
 
@@ -269,6 +270,7 @@ class cRace(object):
 
         attendies=self.attendies()
 
+        print(len(attendies))
         #TODO Workaround, damit keiner nachspringt (s.u.), ist glaub ich aber eh bloedsinn
         self.stoppeHeat()
 
