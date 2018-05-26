@@ -296,7 +296,7 @@ class cRace(object):
     def __autoStop(self, duration):
 
         delay=0.01
-
+        print duration
         running=0.0
 
         while self.__raceStarted:
