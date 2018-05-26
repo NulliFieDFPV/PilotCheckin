@@ -8,11 +8,14 @@ from classes.classRace import cRace
 from classes.classHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV, COM_COMMAND_COL
 from classes.classHelper import COM_INFO_ACC, COM_INFO_SLT
 from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
+from classes.classHelper import checkCurrentRace
+
 from classes.classNode import SlaveNode
 from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
 from classes.classHelper import ausgabe, I2C_STARTED, I2C_COLOR, I2C_CHECKIN, I2C_ADD, I2C_ACTION_RESET, I2C_ACTION_ADD, I2C_SETCOL, I2C_SETCHANID, I2C_SETADD, I2C_SETRESET, I2C_SETCHECKIN
 import Queue
-
+from modules.mDb import db
+from config.cfg_db import tables as sqltbl
 import threading
 import os
 
@@ -44,9 +47,11 @@ class ioserver(object):
         #setup
         self.__active = True
         self.__port = '/dev/ttyUSB0'
-        self.__raceid=raceid
 
-        self.__setupRace(raceid)
+
+        self.__raceid=raceid
+        self.__raceid=checkCurrentRace(raceid)
+        self.__setupRace(self.__raceid)
 
         self.__starten()
 
@@ -84,19 +89,25 @@ class ioserver(object):
 
     def __refresh(self):
 
-        self.__race.refresh()
+        newraceid=checkCurrentRace(self.__race.rid)
 
-        channels = self.__race.channels()
+        if newraceid != self.__race.rid:
+            self.__setupRace(newraceid)
+        else:
 
-        for cid, channel in channels.items():
-            # Dem Modul den slot zuweisen
-            if not self.__nodes.has_key(cid):
-                self.__nodes[cid] = SlaveNode(cid, self.__raceid, self.__q, self.__debugmode)
-                if self.__nodes[cid].connected:
-                    self.__nodesAngemeldet = self.__nodesAngemeldet + 1
+            self.__race.refresh()
 
-            else:
-                self.__command_COL(cid)
+            channels = self.__race.channels()
+
+            for cid, channel in channels.items():
+                # Dem Modul den slot zuweisen
+                if not self.__nodes.has_key(cid):
+                    self.__nodes[cid] = SlaveNode(cid, self.__raceid, self.__q, self.__debugmode)
+                    if self.__nodes[cid].connected:
+                        self.__nodesAngemeldet = self.__nodesAngemeldet + 1
+
+                else:
+                    self.__command_COL(cid)
 
 
 
@@ -126,7 +137,6 @@ class ioserver(object):
 
     def __parseCommand(self, newcommand):
 
-        self.__refresh()
 
         returnStatus=True
 
@@ -155,6 +165,8 @@ class ioserver(object):
 
         else:
             ausgabe(TYPE_ERR,"Kein Race gewaehlt", self.__debugmode)
+
+        self.__refresh()
 
 
         return returnStatus

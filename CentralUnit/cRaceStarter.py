@@ -2,6 +2,7 @@
 
 from classes.classRace import cRace
 from classes.classButton import cButton
+from classes.classHelper import checkCurrentRace
 
 import time
 import datetime
@@ -20,7 +21,7 @@ class cRacestarter(object):
 
     def racing(self):
 
-        print "racing"
+        print "Racing gestartet"
 
         while self.__active:
 
@@ -28,13 +29,23 @@ class cRacestarter(object):
 
             if self.__startButton.pressed:
                 if self.__race.raceStarted:
+
                     print "Race Stoppen"
                     self.__race.stoppeHeat()
+
                 else:
+
+                    newRaceId=checkCurrentRace(self.__race.rid)
+                    if newRaceId != self.__race.rid:
+                        self.__race = cRace(newRaceId)
+
                     print "Race Starten"
                     self.__race.starteHeat()
 
-            time.sleep(0.05)
+
+                time.sleep(1)
+
+            time.sleep(0.001)
 
 
 if __name__=="__main__":

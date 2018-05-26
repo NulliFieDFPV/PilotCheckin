@@ -1,8 +1,7 @@
 
 import datetime
-
-COM_PREFIX_CMD = "START"
-
+from modules.mDb import db
+from config.cfg_db import tables as sqltbl
 
 COM_PREFIX_CMD = "CMD"
 COM_PREFIX_ASK = "ASK"
@@ -39,6 +38,23 @@ TYPE_ERR = "[ERR]"
 TYPE_INF = "[INF]"
 
 COMMAND_LENGTH=8
+
+
+
+def checkCurrentRace(raceid):
+    raceidNew = raceid
+
+    mydb = db()
+    sql = "SELECT * FROM {0} WHERE current=-1 ORDER BY race_date DESC LIMIT 1;".format(sqltbl["races"])
+
+    result = mydb.query(sql)
+
+    for row in result:
+        if raceid > row["RID"]:
+            raceidNew = row["RID"]
+
+    return raceidNew
+
 
 def ausgabe(type, message,debugmode=False):
 
