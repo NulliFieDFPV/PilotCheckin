@@ -282,7 +282,7 @@ class cRace(object):
                 if pilot.checkedin():
                     print pilot.callsign, "checked in"
                     if pilot.cid()==cid:
-                        print pilot.callsign, "chann"
+                        print pilot.callsign, "chann", pilot.waitposition()
                         if pilot.waitposition() == 1:
                             print pilot.callsign, "warte"
                             if not pilot.inflight:
