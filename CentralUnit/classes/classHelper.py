@@ -50,7 +50,7 @@ def checkCurrentRace(raceid):
     result = mydb.query(sql)
 
     for row in result:
-        if raceid > row["RID"]:
+        if raceid != row["RID"]:
             raceidNew = row["RID"]
 
     return raceidNew
