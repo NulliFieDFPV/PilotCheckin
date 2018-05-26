@@ -32,7 +32,7 @@ class cRacestarter(object):
                     self.__race.stoppeHeat()
                 else:
                     print "Race Starten"
-                    self.__race.starteHeat(30)
+                    self.__race.starteHeat()
 
             time.sleep(0.05)
 

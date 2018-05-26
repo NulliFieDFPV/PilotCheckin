@@ -139,6 +139,7 @@ class cRace(object):
         self.__raceStarted=False
 
         self.__startDelay =0
+        self.__autoStopTime=0;
 
         self.__attendies={}
         self.__channels={}
@@ -167,6 +168,15 @@ class cRace(object):
 
         for row in result:
             self.__startDelay=float(row["option_value"])
+
+
+        sql = "SELECT * FROM {0} WHERE RID={1} AND option_name='autoStopTime' ".format(sqltbl["raceoptions"], self.__rid)
+        sql = sql + "AND status=-1 "
+        sql = sql + "ORDER BY option_value;"
+        result = mydb.query(sql)
+
+        for row in result:
+            self.__autoStopTime=float(row["option_value"])
 
         self.__attendies=self.__getAttendies()
         self.__channels=self.__getChannels()
@@ -275,8 +285,8 @@ class cRace(object):
             self.__raceStarted =True
 
 
-        if duration>0:
-            self.__thAutoStopp=threading.Thread(target=self.__autoStop,args=([duration]))
+        if self.__autoStopTime>0:
+            self.__thAutoStopp=threading.Thread(target=self.__autoStop,args=([self.__autoStopTime]))
             self.__thAutoStopp.start()
 
 
