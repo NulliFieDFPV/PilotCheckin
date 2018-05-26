@@ -204,7 +204,7 @@ class cPilot(object):
         for row in result:
             waitpos=waitpos+1
 
-            if row["WID"]==self.__waitid:
+            if row["WID"]==self.waitid:
                 break
 
         return waitpos
