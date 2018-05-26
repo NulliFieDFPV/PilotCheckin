@@ -270,7 +270,7 @@ class cRace(object):
 
         attendies=self.attendies()
 
-        print(len(attendies))
+
         #TODO Workaround, damit keiner nachspringt (s.u.), ist glaub ich aber eh bloedsinn
         self.stoppeHeat()
 
@@ -278,9 +278,13 @@ class cRace(object):
         for cid, channel in sorted(self.__channels.items()):
 
             for aid, pilot in sorted(attendies.items()):
+                print pilot.callsign
                 if pilot.checkedin():
+                    print pilot.callsign, "checked in"
                     if pilot.cid()==cid:
+                        print pilot.callsign, "chann"
                         if pilot.waitposition() == 1:
+                            print pilot.callsign, "warte"
                             if not pilot.inflight:
                                 anzahl = anzahl + 1
                                 print pilot.callsign, "start", self.__channels[pilot.cid()].channelname
