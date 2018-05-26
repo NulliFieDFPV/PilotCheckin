@@ -176,8 +176,6 @@ class cRace(object):
         result = mydb.query(sql)
 
         for row in result:
-            print int(row["option_value"])
-            print row["option_value"]
             self.__autoStopTime=int(row["option_value"])
 
         self.__attendies=self.__getAttendies()
@@ -286,7 +284,7 @@ class cRace(object):
         if anzahl>0:
             self.__raceStarted =True
 
-
+        print "stoptime", self.__autoStopTime
         if self.__autoStopTime>0:
             self.__thAutoStopp=threading.Thread(target=self.__autoStop,args=([self.__autoStopTime]))
             self.__thAutoStopp.start()
