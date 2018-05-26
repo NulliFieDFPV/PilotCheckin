@@ -108,7 +108,7 @@ class cCommando(object):
 
 
         elif self.commando == I2C_ADD:
-            self.cardId = "{0}{1}{2}{3}".format(self.__lVals[3], self.__lVals[4], self.__lVals[5], self.__lVals[6])
+            self.cardId = "{0}{1}{2}{3}".format(DecToHex(self.__lVals[3]), DecToHex(self.__lVals[4]), DecToHex(self.__lVals[5]), DecToHex(self.__lVals[6]))
             self.action = self.__lVals[2]
 
 
