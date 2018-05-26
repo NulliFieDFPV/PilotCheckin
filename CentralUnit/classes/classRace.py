@@ -176,7 +176,7 @@ class cRace(object):
         result = mydb.query(sql)
 
         for row in result:
-            self.__autoStopTime=float(row["option_value"])
+            self.__autoStopTime=int(row["option_value"])
 
         self.__attendies=self.__getAttendies()
         self.__channels=self.__getChannels()
