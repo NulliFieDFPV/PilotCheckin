@@ -95,6 +95,9 @@ class ioserver(object):
                 if self.__nodes[cid].connected:
                     self.__nodesAngemeldet = self.__nodesAngemeldet + 1
 
+            else:
+                self.__command_COL(cid)
+
 
 
     def __readQueue(self):
