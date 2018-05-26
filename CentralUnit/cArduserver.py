@@ -66,6 +66,8 @@ class ioserver(object):
 
         if raceid>0:
             self.__race = cRace(raceid)
+            self.__race.reset()
+
             self.__nodesAngemeldet =0
 
             channels=self.__race.channels()

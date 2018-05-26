@@ -368,6 +368,7 @@ class cRace(object):
         sql = "UPDATE {0} SET WID=0 WHERE RID={1} ".format(sqltbl["attendance"], self.__rid)
         mydb.query(sql)
 
+
     @property
     def shortestChannel(self):
         waitlength=9999

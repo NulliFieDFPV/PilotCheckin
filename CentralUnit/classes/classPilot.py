@@ -48,7 +48,7 @@ class cPilot(object):
 
         sql = "SELECT a.WID, w.CID, w.status FROM {} a ".format(sqltbl["attendance"])
         sql = sql + "INNER JOIN {} w ".format(sqltbl["waitlist"])
-        sql = sql + "ON a.WID=w.WID "
+        sql = sql + "ON a.AID=w.AID "
         sql = sql + "WHERE a.AID={} ".format(self.__attendieid)
         sql = sql + "AND w.status IN(-1,1)"
 

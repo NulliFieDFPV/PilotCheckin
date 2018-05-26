@@ -13,6 +13,8 @@ class cRacestarter(object):
 
         self.__startPin=18
         self.__race=cRace(checkCurrentRace(raceid))
+        self.__race.reset()
+
         self.__active=True
 
         self.__startButton=cButton(self.__startPin)
@@ -36,8 +38,9 @@ class cRacestarter(object):
                 else:
 
                     newRaceId=checkCurrentRace(self.__race.rid)
-                    #if newRaceId != self.__race.rid:
-                    #    self.__race = cRace(newRaceId)
+                    if newRaceId != self.__race.rid:
+                        self.__race = cRace(newRaceId)
+                        self.__race.reset()
 
                     print "Race Starten"
                     self.__race.starteHeat()
