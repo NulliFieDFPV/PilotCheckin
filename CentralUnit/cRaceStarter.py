@@ -12,7 +12,7 @@ class cRacestarter(object):
     def __init__(self, raceid=1):
 
         self.__startPin=18
-        self.__race=cRace(raceid)
+        self.__race=cRace(checkCurrentRace(raceid))
         self.__active=True
 
         self.__startButton=cButton(self.__startPin)
