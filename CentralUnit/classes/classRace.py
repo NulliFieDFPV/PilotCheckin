@@ -267,7 +267,7 @@ class cRace(object):
 
         anzahl = 0
 
-        attendies=self.attendies(True)
+        attendies=self.attendies()
 
         #TODO Workaround, damit keiner nachspringt (s.u.), ist glaub ich aber eh bloedsinn
         self.stoppeHeat()
