@@ -84,16 +84,21 @@ if (isset($_GET["action"])) {
                     
                     //Channel-Konfig speichern
                     $arrNewChannels=array();
-                    
+                    $arrRaceOptions=array();
                     foreach($_POST as $key => $val) {
                         //print $key[0];
-                        if ($key[0]=="c") {
-                            $arrNewChannels[substr($key,1)]=$val;
+                        if (substr($key,0,4)=="chan") {
+                            $arrNewChannels[substr($key,4)]=$val;
+                        }
+                        else {
+                            $arrRaceOptions[$key]=$val;
                         }
                     }
                     
                     updateRaceToChannels($raceid, $arrNewChannels);
                     //sonstige traceoptions speichern
+                    
+                    updateRaceOptions($raceid, $arrRaceOptions);
                     break;
                     
                 case 1:

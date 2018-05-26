@@ -95,6 +95,64 @@ function updateRaceToChannels($raceid, $channels) {
 
 }
 
+function updateRaceOptions($raceid, $arrRaceOptions) {
+    
+    $neuer_parameter="";
+    $neuer_parameter_name="";
+    $db = new PDO('mysql:host=localhost;dbname=dbpilotcheckin', 'udbpilot', 'pdbpilot');
+    
+    foreach($arrRaceOptions as $key => $value) {
+    
+        switch($key) {
+            case "race_name":
+            case "status":
+            case "race_date":
+            
+                break;
+                
+            case "neuer_parameter_name":
+                if ($value !="") {
+                    $neuer_parameter_name=$value;
+                }
+                break;
+                
+            case "neuer_parameter":
+                if ($value !="") {
+                    $neuer_parameter=$value;
+                }
+                break;
+                
+            default:
+
+                
+                $sql= "UPDATE traceoptions SET option_value=? WHERE RID=? AND option_name=?";
+                $statement= $db->prepare($sql);
+                $statement->execute([$value, $key]);
+        }
+    
+    }
+    
+    if ($neuer_parameter_name !="" && $neuer_parameter !="") {
+        //cheggen, ob der neue parametername nicht doch schon existiert
+        foreach($arrRaceOptions as $key => $value) {
+            if ($key==$neuer_parameter_name) {
+                $neuer_parameter_name="";
+                $neuer_parameter="";
+                break;
+            }
+        }
+    }
+    
+    
+    
+    if ($neuer_parameter_name !="" && $neuer_parameter !="") {
+        $sql= "INSERT INTO traceoptions SET option_value=?, RID=?, option_name=?, status=-1;";
+        $statement= $db->prepare($sql);
+        $statement->execute([$neuer_parameter, $raceid, $neuer_parameter_name]);
+    
+    }
+    
+}
 
 function updateRace($rid, $race_name, $race_date, $race_status) {
 
@@ -258,7 +316,7 @@ function ladeRace($rid) {
         $sec .="<div style=\"background-color:rgb(".$r.", ".$g.", ".$b.")\">";
   
         
-        $sec .="<input value=\"-1\" type=\"checkbox\" name=\"c".$rowChannel["CID"]."[]\"  id=\"c".$rowChannel["CID"]."[]\"";
+        $sec .="<input value=\"-1\" type=\"checkbox\" name=\"chan".$rowChannel["CID"]."[]\"  id=\"chan".$rowChannel["CID"]."[]\"";
  
         if (array_search($rowChannel["CID"], $arrCh)!==False) {
             $sec .=" checked ";
@@ -270,9 +328,9 @@ function ladeRace($rid) {
         
 
         //Farbchooser
-        $sec .="<br><input name=\"c".$rowChannel["CID"]."[]\"  id=\"c".$rowChannel["CID"]."[]\" type=\"number\" min=\"0\" max=\"255\" value=\"".$r."\"/>";
-        $sec .="<br><input name=\"c".$rowChannel["CID"]."[]\"  id=\"c".$rowChannel["CID"]."[]\" type=\"number\" min=\"0\" max=\"255\" value=\"".$g."\"/>";
-        $sec .="<br><input name=\"c".$rowChannel["CID"]."[]\"  id=\"c".$rowChannel["CID"]."[]\" type=\"number\" min=\"0\" max=\"255\" value=\"".$b."\"/>";
+        $sec .="<br><input name=\"chan".$rowChannel["CID"]."[]\"  id=\"chan".$rowChannel["CID"]."[]\" type=\"number\" min=\"0\" max=\"255\" value=\"".$r."\"/>";
+        $sec .="<br><input name=\"chan".$rowChannel["CID"]."[]\"  id=\"chan".$rowChannel["CID"]."[]\" type=\"number\" min=\"0\" max=\"255\" value=\"".$g."\"/>";
+        $sec .="<br><input name=\"chan".$rowChannel["CID"]."[]\"  id=\"chan".$rowChannel["CID"]."[]\" type=\"number\" min=\"0\" max=\"255\" value=\"".$b."\"/>";
         $sec .="</div>";
     
     }
@@ -295,10 +353,26 @@ function ladeRace($rid) {
         
         $sqc .="    <div class=\"col-75\">";
         $sec .="      <input type=\"text\" id=\"".$rowOptions["option_name"]."\" name=\"".$rowOptions["option_name"]."\" value=\"".$rowOptions["option_value"]."\">";
+        
         $sec .="    </div>";
         $sec .="  </div>\n";
 
     }
+    
+
+    
+    
+    
+    $sec .="  <div class=\"row\">";
+    $sec .="    <div class=\"col-25\">";
+    $sec .="      <input type=\"text\" id=\"neuer_parameter_name\" name=\"neuer_parameter_name\">";
+    $sec .="    </div>\n";
+    
+    $sqc .="    <div class=\"col-75\">";
+    $sec .="      <input type=\"text\" id=\"neuer_parameter\" name=\"neuer_parameter\">";
+    $sec .="    </div>";
+    $sec .="  </div>\n";
+    
     
     $sec .="  <div class=\"row\">";
     $sec .="    <div class=\"col-25\">";
@@ -323,16 +397,7 @@ function ladeRace($rid) {
     $sec .="  </div>\n";
     
     
-    $sec .="  <div class=\"row\">";
-    $sec .="    <div class=\"col-25\">";
-    $sec .="      <input type=\"text\" id=\"neuer_parameter_name\" name=\"neuer_parameter_name\">";
-    $sec .="    </div>\n";
     
-    $sqc .="    <div class=\"col-75\">";
-    $sec .="      <input type=\"text\" id=\"neuer_parameter\" name=\"neuer_parameter\">";
-    $sec .="    </div>";
-    $sec .="  </div>\n";
-        
         
     
     $sec .="  <div class=\"row\">";
