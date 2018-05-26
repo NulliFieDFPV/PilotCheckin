@@ -82,6 +82,21 @@ class ioserver(object):
         return returnStatus
 
 
+    def __refresh(self):
+
+        self.__race.refresh()
+
+        channels = self.__race.channels()
+
+        for cid, channel in channels.items():
+            # Dem Modul den slot zuweisen
+            if not self.__nodes.has_key(cid):
+                self.__nodes[cid] = SlaveNode(cid, self.__raceid, self.__q, self.__debugmode)
+                if self.__nodes[cid].connected:
+                    self.__nodesAngemeldet = self.__nodesAngemeldet + 1
+
+
+
     def __readQueue(self):
 
         try:
@@ -107,6 +122,8 @@ class ioserver(object):
 
 
     def __parseCommand(self, newcommand):
+
+        self.__refresh()
 
         returnStatus=True
 

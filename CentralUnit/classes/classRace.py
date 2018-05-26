@@ -224,6 +224,11 @@ class cRace(object):
         return attendies
 
 
+    def refresh(self):
+
+        self.__getData()
+
+
     def addCard(self, cardId):
 
 
@@ -258,7 +263,7 @@ class cRace(object):
 
     def starteHeat(self, duration=0):
 
-        self.__getData()
+        self.refresh()
 
         anzahl = 0
 
