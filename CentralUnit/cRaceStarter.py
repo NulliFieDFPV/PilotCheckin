@@ -38,7 +38,7 @@ class cRacestarter(object):
             #print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
             if self.__startButton.down:
-                wait = wait + self.__delay*2
+                wait = wait + self.__delay*3
             else:
                 wait = 0
 
