@@ -24,7 +24,7 @@ class cRacestarter(object):
 
     def shutdown(self):
         print "shutdown"
-        os.system("sudo shutdown -h now")
+        os.system("sudo shutdown -h")
         self.__active=False
 
 
