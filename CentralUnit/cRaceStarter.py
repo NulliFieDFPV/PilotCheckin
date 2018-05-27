@@ -6,6 +6,7 @@ from classes.classHelper import checkCurrentRace
 
 import time
 import datetime
+import os
 
 class cRacestarter(object):
 
