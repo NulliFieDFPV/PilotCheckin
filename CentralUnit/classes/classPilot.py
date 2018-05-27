@@ -199,6 +199,7 @@ class cPilot(object):
         sql = sql + "AND CID={} ".format(self.__cid)
         sql = sql + "AND status IN(-1,1) "
         sql = sql + "ORDER BY wait_date, wait_time"
+        print sql
         result = mydb.query(sql)
 
         for row in result:
