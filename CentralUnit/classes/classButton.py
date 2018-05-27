@@ -23,7 +23,7 @@ class cButton(object):
 
     @property
     def down(self):
-        return (GPIO.input(self.__pin) != False)
+        return (GPIO.input(self.__pin) == False)
 
     @property
     def pressed(self):
