@@ -1,49 +1,82 @@
+#!/usr/bin/python
+
 from classes.classRace import cRace
+from classes.classButton import cButton
+from classes.classHelper import checkCurrentRace
 
 import time
+import datetime
+import os
+
+class cRacestarter(object):
+
+    def __init__(self, raceid=1):
+
+        self.__startPin=18
+        self.__delay=0.001
+        self.__race=cRace(checkCurrentRace(raceid))
+        #self.__race.reset()
+
+        self.__active=True
+
+        self.__startButton=cButton(self.__startPin)
 
 
-def starten(raceid=1):
+    def shutdown(self):
+        print "shutdown"
+        os.system("sudo shutdown -h")
+        self.__active=False
 
-    race=cRace(raceid)
 
-    while True:
-        iDauer=0
+    def racing(self):
 
-        print "Race starten"
+        print "Racing gestartet"
+        wait=0
 
-        anzahl=race.starteHeat()
-        if anzahl>0:
-            while iDauer<60:
+        while self.__active:
 
-                print "noch {} Sekunden InFlight".format(60-iDauer)
+            #print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-                iDauer=iDauer+1
+            if self.__startButton.down:
+                wait = wait + self.__delay*3
+            else:
+                wait = 0
+
+
+            if wait>15:
+                self.shutdown()
+                continue
+
+            #Taster-up
+            if self.__startButton.pressed:
+                if self.__race.raceStarted:
+
+                    print "Race Stoppen"
+                    self.__race.stoppeHeat()
+
+                else:
+
+                    newRaceId=checkCurrentRace(self.__race.rid)
+                    if newRaceId != self.__race.rid:
+                        self.__active=False
+                        continue
+
+                        #Neustart erzwingen - macht der Dienst nach 3 Sekunden
+                    #    self.__race = cRace(newRaceId)
+                    #    self.__race.reset()
+
+                    print "Race Starten"
+                    self.__race.starteHeat()
+
+
                 time.sleep(1)
-        else:
-            print "keine Piloten gestartet"
 
-        iDauer = 0
-
-        print "Race stoppen"
-
-        anzahl =race.stoppeHeat()
-        if anzahl > 0:
-            while iDauer<10:
-
-                print "noch {} Sekunden bis zum naechsten Race".format(10-iDauer)
-                iDauer = iDauer + 1
-                time.sleep(1)
-
-        else:
-            print "keine Piloten gelandet,"
-
-            while iDauer<30:
-
-                print "noch {} Sekunden Bis zum naeschsten Race".format(30-iDauer)
-
-                iDauer=iDauer+1
-                time.sleep(1)
+            time.sleep(self.__delay)
 
 
-starten(1)
+if __name__=="__main__":
+
+    newRaceId = checkCurrentRace(1)
+    race=cRacestarter(newRaceId)
+    race.racing()
+

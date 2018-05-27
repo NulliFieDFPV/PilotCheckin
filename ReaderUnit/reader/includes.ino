@@ -1,7 +1,6 @@
 
-char mybuffer[64];
-int buffercount=0;
-String slot="0000"; 
+
+
 
 
 String stringFromByteArray(byte a[]) {
@@ -19,120 +18,33 @@ String stringFromByteArray(byte a[]) {
 }
 
 
-bool sendCmdToMaster(String command) {
-  
-  
-  if (CONNECTION_MODE==1) {
-    writeToSerial(command, false);
-    writeToSerial(":SLT",false);
-    writeToSerial(slot, false);
-    writeToSerial(";", true);
-  }
-  else {
-    return false;
-   
-  }
-  
-  return true;
-
-}
 
 bool sendInfoToMaster(String message) {
 
   
-  if (CONNECTION_MODE==1) {
-    writeToSerial(message, true);
-  }
-  else {
-    return false;
-   
-  }
-  
+  writeToSerial(message, true);
+
   return true;
 
 }
 
 //Functions
 ///////////////////////////////////////// Get PICC's UID ///////////////////////////////////
-uint8_t getID() {
-  // Getting ready for Reading PICCs
-  if ( ! mfrc522.PICC_IsNewCardPresent()) { //If a new PICC placed to RFID reader continue
-    return 0;
-  }
-  if ( ! mfrc522.PICC_ReadCardSerial()) {   //Since a PICC placed get Serial and continue
-    return 0;
-  }
-  // There are Mifare PICCs which have 4 byte or 7 byte UID care if you use 7 byte PICC
-  // I think we should assume every PICC as they have 4 byte UID
-  // Until we support 7 byte PICCs
-  sendInfoToMaster("Scanned Pilot's Card's UID:");
-  for ( uint8_t i = 0; i < 4; i++) {  //
-    readCard[i] = mfrc522.uid.uidByte[i];
-    //Serial.print(readCard[i], HEX);
-    //Serial.print(readCard[i]);
-    
-  }
-  String card=stringFromByteArray(readCard);
-  sendInfoToMaster(card);
-  sendInfoToMaster("");
-  
-  mfrc522.PICC_HaltA(); // Stop reading
-  
-  return 1;
-}
 
-void setSlot(String newslot) {
+
+void setCid(uint8_t newchannelid) {
   
-  slot=newslot;
-  //TODO LED anzeige, dass jetzt was geaendert wurde
+  channelId=newchannelid;
 
   sendInfoToMaster("");
-  sendInfoToMaster("This Module is now connected as Slot:");
-  sendInfoToMaster(slot);
+  sendInfoToMaster(F("This Module is now connected as Channel-ID:"));
+  sendInfoToMaster(String(channelId));
   sendInfoToMaster("");
 
 }
 
 
-void ShowReaderDetails() {
-  
-  // Get the MFRC522 software version
-  byte v = mfrc522.PCD_ReadRegister(mfrc522.VersionReg);
 
-  String message= "MFRC522 Software Version: 0x" + stringFromByteArray(v);
- 
-  //sendInfoToMaster("MFRC522 Software Version: 0x" + c, false);
-
-  //sendInfoToMaster(c, false);
-
-  if (v == 0x91) {
-    message= message + " = v1.0";
-  }
-  else if (v == 0x92) {
-    message= message + " = v2.0";
-  }
-  else {
-    message= message + " (unknown),probably a chinese clone?";
-  }  
-  sendInfoToMaster(message);  
-  sendInfoToMaster("");
-
-  
-  // When 0x00 or 0xFF is returned, communication probably failed
-  if ((v == 0x00) || (v == 0xFF)) {
-    sendInfoToMaster("WARNING: Communication failure, is the MFRC522 properly connected?");
-    sendInfoToMaster("SYSTEM HALTED: Check connections.");
-    // Visualize system is halted
-
-    do {
-      colorWipe(255,0,0, 1);
-      delay(1000);
-      colorWipe(0,0,0, 1);
-      delay(500);
-    }
-    while (true); // do not go further
-  }
-}
 
 ///////////////////////////////////////// Add ID to EEPROM   ///////////////////////////////////
 void writeID( byte a[]) {
@@ -142,10 +54,12 @@ void writeID( byte a[]) {
   //  Serial.print(a[i], HEX);
   //}
   //Serial.print(F(":SLT"));
-  //Serial.print(slot);
+  //Serial.print(channelid);
   //Serial.println(F(";"));
 
-  sendCmdToMaster("CMD:ADD" + stringFromByteArray(a));
+  //sendCmdToMaster("CMD:ADD" + stringFromByteArray(a));
+  addCardI2c(a);
+  
   
 }
 
@@ -163,14 +77,16 @@ bool checkTwo ( byte a[], byte b[] ) {
 ///////////////////////////////////////// Find ID From EEPROM   ///////////////////////////////////
 bool checkIn( byte a[]) {
   
-  sendCmdToMaster("CMD:CHK" + stringFromByteArray(a));
+  //sendCmdToMaster("CMD:CHK" + stringFromByteArray(a));
+  checkInI2c(a);
+
   
   //Serial.print(F("CMD:CHK"));
   //for ( uint8_t i = 0; i < 4; i++) {  //
   //  Serial.print(a[i], HEX);
   //}
   //Serial.print(F(":SLT"));
-  //Serial.print(slot);
+  //Serial.print(channelid);
   //Serial.println(F(";"));
 
   return true;
@@ -201,26 +117,27 @@ bool checkWipe() {
     setLED(255,0,0,1);
     
     // Give some feedback
-    sendInfoToMaster("Wipe Button Pressed");
-    sendInfoToMaster("Master Card will be Erased! in 10 seconds");
+    sendInfoToMaster(F("Wipe Button Pressed"));
+    sendInfoToMaster(F("Master Card will be Erased! in 10 seconds"));
     bool buttonState = monitorWipeButton(10000); // Give user enough time to cancel operation
     
     if (buttonState == true && checkWipeButton() == true) {    // If button still be pressed, wipe EEPROM
 
       EEPROM.write(1, 0);                  // Reset Magic Number.
-      sendInfoToMaster("Master Card Erased from device");
+      sendInfoToMaster(F("Master Card Erased from device"));
       //while (1);
       resetted=true;
     }
     else {
-      sendInfoToMaster("Master Card Erase Cancelled");
+      sendInfoToMaster(F("Master Card Erase Cancelled"));
     }
   }
 
 
   if (EEPROM.read(1) != 143) {
-    sendInfoToMaster("No Master Card defined");
-    sendInfoToMaster("Scan A Pilot's Card to define as Master Card");
+    sendInfoToMaster(F("No Master Card defined"));
+    sendInfoToMaster(F("Scan A Pilot's Card to define as Master Card"));
+    uint8_t successRead;
     
     do {
       successRead = getID();            // sets successRead to 1 when we get read from reader otherwise 0
@@ -235,8 +152,8 @@ bool checkWipe() {
       EEPROM.write( 2 + j, readCard[j] );  // Write scanned PICC's UID to EEPROM, start from address 3
     }
     EEPROM.write(1, 143);                  // Write to EEPROM we defined Master Card.
-    sendInfoToMaster("Master Card Defined");
-    sendInfoToMaster("Waiting Pilot's Card to be scanned");
+    sendInfoToMaster(F("Master Card Defined"));
+    sendInfoToMaster(F("Waiting Pilot's Card to be scanned"));
     
     successRead=0;
 
@@ -247,62 +164,3 @@ bool checkWipe() {
   
 }
 
-
-
-///////////////////////////////////////// Find ID   ///////////////////////////////////
-// mittlerweile überflüssig
-//bool findID( byte a[] ,String reason) {
-//  // TODO ask Pi, if ID exists
-//  Serial.print(F("ASK:EXS"));
-//  for ( uint8_t i = 0; i < 4; i++) {  //
-//    Serial.print(a[i], HEX);
-//  }
-//  Serial.print(F(":SLT"));
-//  Serial.print(slot);
-//  Serial.print(F(":RSN"));
-//  Serial.print(reason);
-//  Serial.println(F(";"));
-  //return true;
-
-//  return false;
-//}
-
-void readMaster() {
-
-  if (CONNECTION_MODE==1) {
-    readSerial();
-  }
-  else {
-    return false;
-  }
-  
-  //wenn ein Befehl vom Pi kommt
-  //do {
-  //  if (Serial.available()>0) {
-  //    char myread=Serial.read();
-
-  //    if (String(myread)==";") {
-  //      //verarbeiten  
-  //      //Serial.println(F("PArsing..."));
-  //      parseCommand(); 
-        
-  //      for (int i = 0; i < buffercount; i++)
-  //      {
-  //          mybuffer[i] = NULL;
-  //      }
-  //      buffercount=0;
-  //      
-  //      success=true;
-        
-   //   }
-  //    else {
-  //      mybuffer[buffercount++]=myread;
-  //    }
-
-  //  }  
-  //}      
-  //while (Serial.available()>0);
-
-  return true;
-  
-}

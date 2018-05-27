@@ -3,6 +3,7 @@ from modules.mDb import db
 from classes.classPilot import cPilot
 from config.cfg_db import tables as sqltbl
 import time
+import threading
 
 class cChannel(object):
 
@@ -13,7 +14,7 @@ class cChannel(object):
         self.__channel = 0
         self.__band = 0
         self.__status = 0
-        self.__slot="0000"
+        self.__address=""
         self.__port =""
         self.__typ=""
         self.__r="0"
@@ -51,11 +52,16 @@ class cChannel(object):
 
         for row in result:
             self.__channelname=row["channel_name"]
-            self.__channel=row["channel"]
+            self.__channel=int(row["channel"])
             self.__band=row["band"]
             self.__status=row["status"]
-            self.__slot=row["slot"]
             self.__port=row["port"]
+            
+            try:
+                self.__address = row["address"]
+            except:
+                pass
+
             self.__typ=row["typ"]
 
 
@@ -104,8 +110,8 @@ class cChannel(object):
         return self.__band
 
     @property
-    def slot(self):
-        return self.__slot
+    def address(self):
+        return self.__address
 
     @property
     def channelname(self):
@@ -123,6 +129,7 @@ class cChannel(object):
     def typ(self):
         return self.__typ
 
+
 class cRace(object):
 
 
@@ -130,7 +137,10 @@ class cRace(object):
 
         self.__rid=rid
         self.__racedate=None
+        self.__raceStarted=False
+
         self.__startDelay =0
+        self.__autoStopTime=0;
 
         self.__attendies={}
         self.__channels={}
@@ -159,6 +169,15 @@ class cRace(object):
 
         for row in result:
             self.__startDelay=float(row["option_value"])
+
+
+        sql = "SELECT * FROM {0} WHERE RID={1} AND option_name='autoStopTime' ".format(sqltbl["raceoptions"], self.__rid)
+        sql = sql + "AND status=-1 "
+        sql = sql + "ORDER BY option_value;"
+        result = mydb.query(sql)
+
+        for row in result:
+            self.__autoStopTime=int(row["option_value"])
 
         self.__attendies=self.__getAttendies()
         self.__channels=self.__getChannels()
@@ -206,6 +225,11 @@ class cRace(object):
         return attendies
 
 
+    def refresh(self):
+
+        self.__getData()
+
+
     def addCard(self, cardId):
 
 
@@ -238,19 +262,32 @@ class cRace(object):
         return self.__attendies
 
 
-    def starteHeat(self):
+    def starteHeat(self, duration=0):
+
+        self.refresh()
 
         anzahl = 0
 
-        attendies=self.attendies(True)
+        attendies=self.attendies()
+
+
+        #TODO Workaround, damit keiner nachspringt (s.u.), ist glaub ich aber eh bloedsinn
+        self.stoppeHeat()
 
         # Fuer jeden Channel mal die LAge checken und einen piloten starten
-        for cid, channel in self.__channels.items():
+        for cid, channel in sorted(self.__channels.items()):
 
-            for aid, pilot in attendies.items():
+            for aid, pilot in sorted(attendies.items()):
+                #print pilot.callsign
                 if pilot.checkedin():
+                    #print pilot.callsign, "checked in"
+                    #print pilot.callsign, "ckeck"
                     if pilot.cid()==cid:
+                        #print pilot.callsign, "cid", cid, "aid", aid, "w", pilot.waitposition()
+                        #print pilot.callsign, "chann", pilot.waitposition()
                         if pilot.waitposition() == 1:
+
+                            #print pilot.callsign, "warte"
                             if not pilot.inflight:
                                 anzahl = anzahl + 1
                                 print pilot.callsign, "start", self.__channels[pilot.cid()].channelname
@@ -260,9 +297,35 @@ class cRace(object):
                                         time.sleep(self.__startDelay)
                             else:
                                 #TODO An diesem Channel kann jetzt ein anderer starten, und zwar der pilot mit waitposition=2 und dem gleichen channel wie dieser pilot
+                                #Als Worakround vorher einmal stoppen ausfuehren
                                 pilot.stopHeat()
 
+
+        if anzahl>0:
+            self.__raceStarted =True
+
+
+        if self.__autoStopTime>0:
+            self.__thAutoStopp=threading.Thread(target=self.__autoStop,args=([self.__autoStopTime]))
+            self.__thAutoStopp.start()
+
+
         return anzahl
+
+
+    def __autoStop(self, duration):
+
+        delay=0.01
+        running=0.0
+
+        while self.__raceStarted:
+
+            if running>=duration:
+                self.stoppeHeat()
+                break
+
+            time.sleep(delay)
+            running = running + delay
 
 
     def stoppeHeat(self):
@@ -270,17 +333,23 @@ class cRace(object):
         anzahl=0
 
         attendies=self.attendies(True)
+        for cid, channel in sorted(self.__channels.items()):
 
-        for aid, pilot in attendies.items():
-            if pilot.checkedin():
-                if pilot.waitposition() == 1:
-                    if pilot.inflight:
-                        anzahl=anzahl+1
-                        print pilot.callsign, "stop", self.__channels[pilot.cid()].channelname
+            for aid, pilot in sorted(attendies.items()):
 
-                        pilot.stopHeat()
-                        if self.__startDelay>0:
-                                time.sleep(self.__startDelay)
+                if pilot.checkedin():
+                    if pilot.cid() == cid:
+                        if pilot.waitposition() == 1:
+                            if pilot.inflight:
+                                anzahl=anzahl+1
+                                print pilot.callsign, "stop", self.__channels[pilot.cid()].channelname
+
+                                pilot.stopHeat()
+                                if self.__startDelay>0:
+                                        time.sleep(self.__startDelay)
+
+
+        self.__raceStarted =False
 
         return anzahl
 
@@ -301,6 +370,7 @@ class cRace(object):
 
         sql = "UPDATE {0} SET WID=0 WHERE RID={1} ".format(sqltbl["attendance"], self.__rid)
         mydb.query(sql)
+
 
     @property
     def shortestChannel(self):
@@ -343,6 +413,11 @@ class cRace(object):
     @property
     def rid(self):
         return self.__rid
+
+
+    @property
+    def raceStarted(self):
+        return self.__raceStarted
 
 
     @property
