@@ -479,8 +479,16 @@ class ioserver(object):
         return self.__active
 
 
-    def beenden(self, arg1, arg2, arg3):
+    def beenden(self, arg1=None, arg2=None, arg3=None):
 
+        if not arg1 is None:
+            print arg1
+
+        if not arg2 is None:
+            print arg2
+
+        if not arg3 is None:
+            print arg3
 
         for cid, node in self.__nodes.items():
             ausgabe(TYPE_DBG, "Node {} beenden".format(node.channelid), self.__debugmode)
