@@ -51,6 +51,13 @@ class ioserver(object):
 
         self.__raceid=raceid
         self.__raceid=checkCurrentRace(raceid)
+
+        self.__q = Queue.Queue()
+
+        self.__thQ = threading.Thread(target=self.__readQueue, args=())
+        self.__thQ.start()
+
+
         self.__setupRace(self.__raceid)
 
         self.__starten()
@@ -71,10 +78,7 @@ class ioserver(object):
             self.__nodesAngemeldet =0
 
             channels=self.__race.channels()
-            self.__q = Queue.Queue()
 
-            self.__thQ=threading.Thread(target=self.__readQueue, args=())
-            self.__thQ.start()
 
             for cid, channel in channels.items():
                 #Dem Modul den slot zuweisen
@@ -104,6 +108,8 @@ class ioserver(object):
             time.sleep(1)
 
             self.__setupRace(newraceid)
+
+
         else:
 
             self.__race.refresh()
