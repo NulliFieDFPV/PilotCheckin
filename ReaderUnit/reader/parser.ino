@@ -11,12 +11,12 @@ void parseCmd(byte cmd[]) {
       //reset
       sendInfoToMaster(INFOLINE);
       startMeUp();
-
+      online=true;
       break;
 
     case 1:
       //channelid
-
+      online=true;
       setCid(cmd[2]);
       
       askColorI2c();
@@ -25,6 +25,7 @@ void parseCmd(byte cmd[]) {
     case 2:
       //Farbe
       setColor(cmd[2], cmd[3], cmd[4]);
+      beep(SHORTBEEP, 2, BEEPINGWAIT);
       break;
       
     case 3:
@@ -124,7 +125,12 @@ void parseCmd(byte cmd[]) {
           
       }
       break;
-
+      
+    case 6:
+      //shutdown
+      setColor(110, 0, 0);
+      online=false;
+      
   }
 }
 

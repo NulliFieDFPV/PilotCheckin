@@ -23,7 +23,7 @@ class cRacestarter(object):
 
 
     def shutdown(self):
-        print "shut"
+        print "shutdown"
         os.system("sudo shutdown -h now")
         self.__active=False
 
@@ -38,7 +38,7 @@ class cRacestarter(object):
             #print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
             if self.__startButton.down:
-                wait = wait + self.__delay
+                wait = wait + self.__delay*2
             else:
                 wait = 0
 

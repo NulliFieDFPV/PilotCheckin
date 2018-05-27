@@ -134,10 +134,19 @@ void programModeOn () {
   
 }
 
+void offlineModeOn() {
+  
+  for (int i=0;i<=ANZAHL_LEDS; i++) {
+    if (i==MODE_LED) {
+      setLED(255, 0, 0, MODE_LED);
+    }
+    else if (i != CHANNEL_LED) {
+      setLED(0, 0, 0, i);
+    }
+  }
+}
 
 void normalModeOn () {
-
-  digitalWrite(BUZZER_PIN, HIGH);    // Make sure Door is Locked
   
   for (int i=0;i<=ANZAHL_LEDS; i++) {
     if (i==MODE_LED) {
