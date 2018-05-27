@@ -9,7 +9,7 @@ from classes.classHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WL
 from classes.classHelper import COM_INFO_ACC, COM_INFO_SLT, COM_INFO_RSP
 from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD, COMMAND_LENGTH
 
-from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
+from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF, I2C_SHUTDOWN
 from classes.classHelper import ausgabe
 from classes.classConnection import  cConSerial, cConI2C
 
@@ -203,6 +203,11 @@ class SlaveNode(cChannel):
 
         #Threads beenden
         #Serial schliessen
+
+        vals = [int(self.channelid), 0, 0, 0, 0, 0, 0]
+        self.sendToI2cNode(I2C_SHUTDOWN, vals)
+
+
         if not self.__con is None:
             self.__con.close()
 

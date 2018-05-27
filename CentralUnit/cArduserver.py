@@ -8,14 +8,17 @@ from classes.classRace import cRace
 from classes.classHelper import COM_COMMAND_ADD, COM_COMMAND_EXS, COM_COMMAND_WLK, COM_COMMAND_CHK, COM_COMMAND_RMV, COM_COMMAND_COL
 from classes.classHelper import COM_INFO_ACC, COM_INFO_SLT
 from classes.classHelper import COM_PREFIX_ASK, COM_PREFIX_CMD
+from classes.classHelper import checkCurrentRace
+
 from classes.classNode import SlaveNode
 from classes.classHelper import TYPE_OUT, TYPE_ERR, TYPE_CMD, TYPE_DBG, TYPE_RSP, TYPE_INF
-from classes.classHelper import ausgabe, I2C_STARTED, I2C_COLOR, I2C_CHECKIN, I2C_ADD, I2C_ACTION_RESET, I2C_ACTION_ADD, I2C_SETCOL, I2C_SETCHANID, I2C_SETADD, I2C_SETRESET, I2C_SETCHECKIN
+from classes.classHelper import ausgabe, I2C_STARTED, I2C_COLOR, I2C_CHECKIN, I2C_ADD, I2C_ACTION_RESET, I2C_ACTION_ADD, I2C_SETCOL, I2C_SETCHANID, I2C_SETADD, I2C_SETRESET, I2C_SETCHECKIN, I2C_SHUTDOWN
 import Queue
-
+from modules.mDb import db
+from config.cfg_db import tables as sqltbl
 import threading
 import os
-
+import signal
 
 
 
@@ -33,6 +36,9 @@ class ioserver(object):
         if kwargs.has_key("debug"):
             debug =(kwargs.get("debug")==1)
 
+        for sig in [signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT]:
+            signal.signal(sig, self.beenden)
+
         self.__serial=None
         self.__debugmode=debug
         self.__msg_temp = ""
@@ -44,9 +50,18 @@ class ioserver(object):
         #setup
         self.__active = True
         self.__port = '/dev/ttyUSB0'
+
+
         self.__raceid=raceid
 
-        self.__setupRace(raceid)
+
+        self.__q = Queue.Queue()
+
+        self.__thQ = threading.Thread(target=self.__readQueue, args=())
+        self.__thQ.start()
+
+
+        self.__setupRace(self.__raceid)
 
         self.__starten()
 
@@ -61,13 +76,12 @@ class ioserver(object):
 
         if raceid>0:
             self.__race = cRace(raceid)
+            #self.__race.reset()
+
             self.__nodesAngemeldet =0
 
             channels=self.__race.channels()
-            self.__q = Queue.Queue()
 
-            self.__thQ=threading.Thread(target=self.__readQueue, args=())
-            self.__thQ.start()
 
             for cid, channel in channels.items():
                 #Dem Modul den slot zuweisen
@@ -80,6 +94,43 @@ class ioserver(object):
             returnStatus=False
 
         return returnStatus
+
+
+    def __refresh(self):
+
+        newraceid=checkCurrentRace(self.__race.rid)
+
+        if newraceid != self.__race.rid:
+            self.beenden()
+
+            """
+            for cid, node in self.__nodes.items():
+                ausgabe(TYPE_DBG, "Node {} beenden".format(node.channelid), self.__debugmode)
+                node.beenden()
+                # print(node.active, node.slot)
+                self.__nodes[cid] = None
+
+            time.sleep(1)
+
+            self.__setupRace(newraceid)
+            """
+
+        else:
+
+            self.__race.refresh()
+
+            channels = self.__race.channels()
+
+            for cid, channel in channels.items():
+                # Dem Modul den slot zuweisen
+                if not self.__nodes.has_key(cid):
+                    self.__nodes[cid] = SlaveNode(cid, self.__raceid, self.__q, self.__debugmode)
+                    if self.__nodes[cid].connected:
+                        self.__nodesAngemeldet = self.__nodesAngemeldet + 1
+
+                else:
+                    self.__command_COL(cid)
+
 
 
     def __readQueue(self):
@@ -108,6 +159,7 @@ class ioserver(object):
 
     def __parseCommand(self, newcommand):
 
+
         returnStatus=True
 
         if self.__raceid>0:
@@ -135,6 +187,8 @@ class ioserver(object):
 
         else:
             ausgabe(TYPE_ERR,"Kein Race gewaehlt", self.__debugmode)
+
+        self.__refresh()
 
 
         return returnStatus
@@ -168,6 +222,8 @@ class ioserver(object):
 
 
 
+
+
     def __command_ADD(self, cardId, cid):
 
 
@@ -198,7 +254,7 @@ class ioserver(object):
 
             # LastCard zwischenspeochern, falls kein "ok" kommt
             # beim 2. mal wird dann der checkIn zurueck gesetzt
-            lastCardId = ""
+
             if cid in self.__lastCards:
                 lastCardId = self.__lastCards[cid]
 
@@ -425,8 +481,16 @@ class ioserver(object):
         return self.__active
 
 
-    def beenden(self):
+    def beenden(self, arg1=None, arg2=None, arg3=None):
 
+        if not arg1 is None:
+            print arg1
+
+        if not arg2 is None:
+            print arg2
+
+        if not arg3 is None:
+            print arg3
 
         for cid, node in self.__nodes.items():
             ausgabe(TYPE_DBG, "Node {} beenden".format(node.channelid), self.__debugmode)
@@ -450,8 +514,8 @@ class ioserver(object):
 if __name__=="__main__":
 
     try:
-
-        myServer = ioserver(raceid=1, debug=1)
+        raceid = checkCurrentRace(1)
+        myServer = ioserver(raceid=raceid, debug=1)
 
         print "Main beendet"
         os._exit(1)

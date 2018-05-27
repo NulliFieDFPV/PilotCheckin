@@ -129,6 +129,7 @@ class cChannel(object):
     def typ(self):
         return self.__typ
 
+
 class cRace(object):
 
 
@@ -139,6 +140,7 @@ class cRace(object):
         self.__raceStarted=False
 
         self.__startDelay =0
+        self.__autoStopTime=0;
 
         self.__attendies={}
         self.__channels={}
@@ -167,6 +169,15 @@ class cRace(object):
 
         for row in result:
             self.__startDelay=float(row["option_value"])
+
+
+        sql = "SELECT * FROM {0} WHERE RID={1} AND option_name='autoStopTime' ".format(sqltbl["raceoptions"], self.__rid)
+        sql = sql + "AND status=-1 "
+        sql = sql + "ORDER BY option_value;"
+        result = mydb.query(sql)
+
+        for row in result:
+            self.__autoStopTime=int(row["option_value"])
 
         self.__attendies=self.__getAttendies()
         self.__channels=self.__getChannels()
@@ -214,6 +225,11 @@ class cRace(object):
         return attendies
 
 
+    def refresh(self):
+
+        self.__getData()
+
+
     def addCard(self, cardId):
 
 
@@ -248,17 +264,30 @@ class cRace(object):
 
     def starteHeat(self, duration=0):
 
+        self.refresh()
+
         anzahl = 0
 
-        attendies=self.attendies(True)
+        attendies=self.attendies()
+
+
+        #TODO Workaround, damit keiner nachspringt (s.u.), ist glaub ich aber eh bloedsinn
+        self.stoppeHeat()
 
         # Fuer jeden Channel mal die LAge checken und einen piloten starten
-        for cid, channel in self.__channels.items():
+        for cid, channel in sorted(self.__channels.items()):
 
-            for aid, pilot in attendies.items():
+            for aid, pilot in sorted(attendies.items()):
+                #print pilot.callsign
                 if pilot.checkedin():
+                    #print pilot.callsign, "checked in"
+                    #print pilot.callsign, "ckeck"
                     if pilot.cid()==cid:
+                        #print pilot.callsign, "cid", cid, "aid", aid, "w", pilot.waitposition()
+                        #print pilot.callsign, "chann", pilot.waitposition()
                         if pilot.waitposition() == 1:
+
+                            #print pilot.callsign, "warte"
                             if not pilot.inflight:
                                 anzahl = anzahl + 1
                                 print pilot.callsign, "start", self.__channels[pilot.cid()].channelname
@@ -268,6 +297,7 @@ class cRace(object):
                                         time.sleep(self.__startDelay)
                             else:
                                 #TODO An diesem Channel kann jetzt ein anderer starten, und zwar der pilot mit waitposition=2 und dem gleichen channel wie dieser pilot
+                                #Als Worakround vorher einmal stoppen ausfuehren
                                 pilot.stopHeat()
 
 
@@ -275,8 +305,8 @@ class cRace(object):
             self.__raceStarted =True
 
 
-        if duration>0:
-            self.__thAutoStopp=threading.Thread(target=self.__autoStop,args=([duration]))
+        if self.__autoStopTime>0:
+            self.__thAutoStopp=threading.Thread(target=self.__autoStop,args=([self.__autoStopTime]))
             self.__thAutoStopp.start()
 
 
@@ -286,7 +316,6 @@ class cRace(object):
     def __autoStop(self, duration):
 
         delay=0.01
-
         running=0.0
 
         while self.__raceStarted:
@@ -304,17 +333,20 @@ class cRace(object):
         anzahl=0
 
         attendies=self.attendies(True)
+        for cid, channel in sorted(self.__channels.items()):
 
-        for aid, pilot in attendies.items():
-            if pilot.checkedin():
-                if pilot.waitposition() == 1:
-                    if pilot.inflight:
-                        anzahl=anzahl+1
-                        print pilot.callsign, "stop", self.__channels[pilot.cid()].channelname
+            for aid, pilot in sorted(attendies.items()):
 
-                        pilot.stopHeat()
-                        if self.__startDelay>0:
-                                time.sleep(self.__startDelay)
+                if pilot.checkedin():
+                    if pilot.cid() == cid:
+                        if pilot.waitposition() == 1:
+                            if pilot.inflight:
+                                anzahl=anzahl+1
+                                print pilot.callsign, "stop", self.__channels[pilot.cid()].channelname
+
+                                pilot.stopHeat()
+                                if self.__startDelay>0:
+                                        time.sleep(self.__startDelay)
 
 
         self.__raceStarted =False
@@ -338,6 +370,7 @@ class cRace(object):
 
         sql = "UPDATE {0} SET WID=0 WHERE RID={1} ".format(sqltbl["attendance"], self.__rid)
         mydb.query(sql)
+
 
     @property
     def shortestChannel(self):

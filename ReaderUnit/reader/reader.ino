@@ -23,7 +23,7 @@ constexpr uint8_t ANZAHL_LEDS =4;
 constexpr uint8_t CHANNEL_LED =3;
 constexpr uint8_t MODE_LED=0;
 
-constexpr byte I2C_ADDR=0x38;
+constexpr byte I2C_ADDR=0x39;
 
 constexpr uint8_t BUZZER_PIN = 5;     // Set Relay Pin
 constexpr uint8_t WIPEBUTTON_PIN = 3;     // Button pin for WipeMode
@@ -37,7 +37,7 @@ constexpr uint8_t CMD_SIZE = 8;
 char mybuffer[64];
 int buffercount=0;
 uint8_t channelId=0; 
-
+bool online=false;
 bool programMode = false;  // initialize programming mode to false
 constexpr char INFOLINE[29] = "----------------------------";
 
@@ -72,15 +72,19 @@ void loop () {
 
     successRead = getID();  // sets successRead to 1 when we get read from reader otherwise 0
     
-    
-    //Anzeige, ob im Program Mode, oder normalen Mode
-    if (programMode) {
-      programModeOn();              // Program Mode cycles through Red Green Blue waiting to read a new card
+
+    if (online==false) {
+       offlineModeOn();
     }
     else {
-      normalModeOn();     // Normal mode, blue Power LED is on, all others are off
+      //Anzeige, ob im Program Mode, oder normalen Mode
+      if (programMode) {
+        programModeOn();              // Program Mode cycles through Red Green Blue waiting to read a new card
+      }
+      else {
+        normalModeOn();     // Normal mode, blue Power LED is on, all others are off
+      }
     }
-    
   }
   while (!successRead);   //the program will not go further while you are not getting a successful read
 
@@ -179,8 +183,16 @@ void startMeUp() {
   //Am Pi anmelden
   
   sayHelloI2c();
+  rainbowCycle(1); 
+
   
-  rainbowCycle(1);    // Everything ready lets give user some feedback by cycling leds
+  do {
+    offlineModeOn();// Everything ready lets give user some feedback by cycling leds
+    delay(100);
+    colorWipe(200,0,0,3);
+    delay(100);
+    
+  } while (online==false);
   
 }
 

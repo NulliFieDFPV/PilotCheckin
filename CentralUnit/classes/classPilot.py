@@ -48,7 +48,7 @@ class cPilot(object):
 
         sql = "SELECT a.WID, w.CID, w.status FROM {} a ".format(sqltbl["attendance"])
         sql = sql + "INNER JOIN {} w ".format(sqltbl["waitlist"])
-        sql = sql + "ON a.WID=w.WID "
+        sql = sql + "ON a.AID=w.AID "
         sql = sql + "WHERE a.AID={} ".format(self.__attendieid)
         sql = sql + "AND w.status IN(-1,1)"
 
@@ -142,7 +142,7 @@ class cPilot(object):
 
         mydb = db()
         sql = "UPDATE {} SET ".format(sqltbl["waitlist"])
-        sql = sql + "status=-1, update_date='{}', update_time='{}' ".format(datum.strftime("%Y-%m-%d"), datum.strftime("%H:%M:%S"))
+        sql = sql + "status=0, update_date='{}', update_time='{}' ".format(datum.strftime("%Y-%m-%d"), datum.strftime("%H:%M:%S"))
         sql = sql + "WHERE AID={}".format(self.__attendieid)
         mydb.query(sql)
 
@@ -199,12 +199,13 @@ class cPilot(object):
         sql = sql + "AND CID={} ".format(self.__cid)
         sql = sql + "AND status IN(-1,1) "
         sql = sql + "ORDER BY wait_date, wait_time"
+        #print sql, self.waitid()
         result = mydb.query(sql)
 
         for row in result:
             waitpos=waitpos+1
 
-            if row["WID"]==self.__waitid:
+            if row["WID"]==self.waitid():
                 break
 
         return waitpos

@@ -1,8 +1,7 @@
 
 import datetime
-
-COM_PREFIX_CMD = "START"
-
+from modules.mDb import db
+from config.cfg_db import tables as sqltbl
 
 COM_PREFIX_CMD = "CMD"
 COM_PREFIX_ASK = "ASK"
@@ -27,6 +26,7 @@ I2C_SETCHANID=1
 I2C_SETADD=5
 I2C_SETRESET=4
 I2C_SETCHECKIN=3
+I2C_SHUTDOWN=6
 
 I2C_ACTION_RESET=1
 I2C_ACTION_ADD=0
@@ -39,6 +39,23 @@ TYPE_ERR = "[ERR]"
 TYPE_INF = "[INF]"
 
 COMMAND_LENGTH=8
+
+
+
+def checkCurrentRace(raceid):
+    raceidNew = raceid
+
+    mydb = db()
+    sql = "SELECT * FROM {0} WHERE current=-1 ORDER BY race_date DESC LIMIT 1;".format(sqltbl["races"])
+
+    result = mydb.query(sql)
+
+    for row in result:
+        if raceid != row["RID"]:
+            raceidNew = row["RID"]
+
+    return raceidNew
+
 
 def ausgabe(type, message,debugmode=False):
 
@@ -108,7 +125,7 @@ class cCommando(object):
 
 
         elif self.commando == I2C_ADD:
-            self.cardId = "{0}{1}{2}{3}".format(self.__lVals[3], self.__lVals[4], self.__lVals[5], self.__lVals[6])
+            self.cardId = "{0}{1}{2}{3}".format(DecToHex(self.__lVals[3]), DecToHex(self.__lVals[4]), DecToHex(self.__lVals[5]), DecToHex(self.__lVals[6]))
             self.action = self.__lVals[2]
 
 
