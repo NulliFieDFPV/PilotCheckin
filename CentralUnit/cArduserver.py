@@ -36,7 +36,7 @@ class ioserver(object):
         if kwargs.has_key("debug"):
             debug =(kwargs.get("debug")==1)
 
-        for sig in [signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT, signal.SIGKILL]:
+        for sig in [signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT]:
             signal.signal(sig, self.beenden)
 
         self.__serial=None
