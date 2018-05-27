@@ -12,6 +12,7 @@ class cRacestarter(object):
     def __init__(self, raceid=1):
 
         self.__startPin=18
+        self.__delay=0.001
         self.__race=cRace(checkCurrentRace(raceid))
         self.__race.reset()
 
@@ -20,15 +21,28 @@ class cRacestarter(object):
         self.__startButton=cButton(self.__startPin)
 
 
+    def shutdown(self):
+        print "shut"
 
     def racing(self):
 
         print "Racing gestartet"
+        wait=0
 
         while self.__active:
 
             #print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
+            if self.__startButton.down:
+                wait = wait + self.__delay
+            else:
+                wait = 0
+
+
+            if wait>20:
+                self.shutdown()
+
+            #Taster-up
             if self.__startButton.pressed:
                 if self.__race.raceStarted:
 
@@ -48,7 +62,7 @@ class cRacestarter(object):
 
                 time.sleep(1)
 
-            time.sleep(0.001)
+            time.sleep(self.__delay)
 
 
 if __name__=="__main__":

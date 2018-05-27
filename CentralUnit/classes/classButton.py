@@ -22,6 +22,10 @@ class cButton(object):
                 time.sleep(0.2)
 
     @property
+    def down(self):
+        return (GPIO.input(self.__pin) != False)
+
+    @property
     def pressed(self):
         if GPIO.event_detected(self.__pin):
             return True
