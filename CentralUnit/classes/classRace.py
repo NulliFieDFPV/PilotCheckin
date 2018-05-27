@@ -281,9 +281,12 @@ class cRace(object):
                 #print pilot.callsign
                 if pilot.checkedin():
                     #print pilot.callsign, "checked in"
+                    print pilot.callsign, "ckeck"
                     if pilot.cid()==cid:
+                        print pilot.callsign, "cid", aid, "w", pilot.waitposition()
                         #print pilot.callsign, "chann", pilot.waitposition()
                         if pilot.waitposition() == 1:
+
                             #print pilot.callsign, "warte"
                             if not pilot.inflight:
                                 anzahl = anzahl + 1
