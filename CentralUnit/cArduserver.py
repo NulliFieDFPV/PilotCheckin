@@ -252,7 +252,7 @@ class ioserver(object):
 
             # LastCard zwischenspeochern, falls kein "ok" kommt
             # beim 2. mal wird dann der checkIn zurueck gesetzt
-            lastCardId = ""
+
             if cid in self.__lastCards:
                 lastCardId = self.__lastCards[cid]
 

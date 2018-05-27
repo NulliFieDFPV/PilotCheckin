@@ -142,7 +142,7 @@ class cPilot(object):
 
         mydb = db()
         sql = "UPDATE {} SET ".format(sqltbl["waitlist"])
-        sql = sql + "status=-1, update_date='{}', update_time='{}' ".format(datum.strftime("%Y-%m-%d"), datum.strftime("%H:%M:%S"))
+        sql = sql + "status=0, update_date='{}', update_time='{}' ".format(datum.strftime("%Y-%m-%d"), datum.strftime("%H:%M:%S"))
         sql = sql + "WHERE AID={}".format(self.__attendieid)
         mydb.query(sql)
 
