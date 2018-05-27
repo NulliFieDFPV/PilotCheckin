@@ -53,7 +53,7 @@ class ioserver(object):
 
 
         self.__raceid=raceid
-        self.__raceid=checkCurrentRace(raceid)
+
 
         self.__q = Queue.Queue()
 
@@ -101,7 +101,9 @@ class ioserver(object):
         newraceid=checkCurrentRace(self.__race.rid)
 
         if newraceid != self.__race.rid:
+            self.beenden()
 
+            """
             for cid, node in self.__nodes.items():
                 ausgabe(TYPE_DBG, "Node {} beenden".format(node.channelid), self.__debugmode)
                 node.beenden()
@@ -111,7 +113,7 @@ class ioserver(object):
             time.sleep(1)
 
             self.__setupRace(newraceid)
-
+            """
 
         else:
 
@@ -512,8 +514,8 @@ class ioserver(object):
 if __name__=="__main__":
 
     try:
-
-        myServer = ioserver(raceid=1, debug=1)
+        raceid = checkCurrentRace(1)
+        myServer = ioserver(raceid=raceid, debug=1)
 
         print "Main beendet"
         os._exit(1)

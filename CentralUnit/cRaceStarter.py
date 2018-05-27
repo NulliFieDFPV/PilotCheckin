@@ -56,8 +56,10 @@ class cRacestarter(object):
 
                 else:
 
-                    #newRaceId=checkCurrentRace(self.__race.rid)
-                    #if newRaceId != self.__race.rid:
+                    newRaceId=checkCurrentRace(self.__race.rid)
+                    if newRaceId != self.__race.rid:
+                        self.__active=False
+                        #Neustart erzwingen - macht der Dienst nach 3 Sekunden
                     #    self.__race = cRace(newRaceId)
                     #    self.__race.reset()
 
@@ -71,6 +73,8 @@ class cRacestarter(object):
 
 
 if __name__=="__main__":
-    race=cRacestarter(1)
+
+    newRaceId = checkCurrentRace(1)
+    race=cRacestarter(newRaceId)
     race.racing()
 
