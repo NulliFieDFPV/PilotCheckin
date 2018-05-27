@@ -15,7 +15,7 @@ class cRacestarter(object):
         self.__startPin=18
         self.__delay=0.001
         self.__race=cRace(checkCurrentRace(raceid))
-        self.__race.reset()
+        #self.__race.reset()
 
         self.__active=True
 
