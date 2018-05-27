@@ -18,7 +18,7 @@ from modules.mDb import db
 from config.cfg_db import tables as sqltbl
 import threading
 import os
-
+import signal
 
 
 
@@ -35,6 +35,9 @@ class ioserver(object):
 
         if kwargs.has_key("debug"):
             debug =(kwargs.get("debug")==1)
+
+        for sig in [signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT]:
+            signal.signal(sig, self.beenden)
 
         self.__serial=None
         self.__debugmode=debug
