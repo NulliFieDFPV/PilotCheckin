@@ -23,6 +23,9 @@ class cRacestarter(object):
 
     def shutdown(self):
         print "shut"
+        os.system("sudo shutdown -h now")
+        self.__active=False
+
 
     def racing(self):
 
@@ -35,13 +38,13 @@ class cRacestarter(object):
 
             if self.__startButton.down:
                 wait = wait + self.__delay
-                print wait
             else:
                 wait = 0
 
 
-            if wait>20:
+            if wait>15:
                 self.shutdown()
+                continue
 
             #Taster-up
             if self.__startButton.pressed:
