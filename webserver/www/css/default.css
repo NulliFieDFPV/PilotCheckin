@@ -37,6 +37,12 @@ section.navi ul {
     overflow: hidden;
 }
 
+.stats table, .stats td, .stats th {
+    border-spacing: 1px;
+    border-collapse: collapse;
+    border: 1px solid #ccc;
+    padding:0.5em;
+}
 .rowCh div {
     
  float:left;
@@ -51,7 +57,20 @@ section.navi ul {
  margin-bottom:0.5em; 
  
 }
+table div.online {
+    background-color:#00ff11;
+}
 
+table div.offline {
+    background-color:#dddddd;
+}
+
+table div.online, table div.offline {
+    border: 0.1em solid #ccc;
+    border-radius:1em;
+    margin-left:25%;
+    width:50%;
+}
 
 .rowCh input {
     width:3em;
