@@ -479,7 +479,7 @@ class ioserver(object):
         return self.__active
 
 
-    def beenden(self):
+    def beenden(self, arg1, arg2, arg3):
 
 
         for cid, node in self.__nodes.items():
