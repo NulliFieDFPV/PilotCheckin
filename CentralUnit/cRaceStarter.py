@@ -35,6 +35,7 @@ class cRacestarter(object):
 
             if self.__startButton.down:
                 wait = wait + self.__delay
+                print wait
             else:
                 wait = 0
 
