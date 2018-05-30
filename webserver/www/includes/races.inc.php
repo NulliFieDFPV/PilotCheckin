@@ -242,11 +242,11 @@ function ladeRace($rid) {
  
     $sec .="  <div class=\"row\">";
     $sec .="    <div class=\"col-25\">";
-    $sec .="      <label for=\"pid\">Race-ID:</label>";
+    $sec .="      <label for=\"rid\">Race-ID:</label>";
     $sec .="    </div>\n";
     
     $sqc .="    <div class=\"col-75\">";
-    $sec .="      <input type=\"text\" id=\"pid\" name=\"pid\" value=\"".$rid."\" readonly disabled>";
+    $sec .="      <input type=\"text\" id=\"rid\" name=\"rid\" value=\"".$rid."\" readonly disabled>";
     $sec .="    </div>";
     $sec .="  </div>\n";
     
@@ -401,7 +401,7 @@ function ladeRace($rid) {
         
     
     $sec .="  <div class=\"row\">";
-    $sec .="    <a href=\"pilots.php?action=delete&id=".$pid."\" class=\"loeschbutton\">L&ouml;schen</a> <input type=\"submit\" value=\"Speichern\">";
+    $sec .="    <a href=\"config.php?action=delete&rid=".$rid."\" class=\"loeschbutton\">L&ouml;schen</a> <input type=\"submit\" value=\"Speichern\">";
     $sec .="  </div>";
     $sec .="</form>\n";
     
