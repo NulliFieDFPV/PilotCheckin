@@ -46,16 +46,20 @@ function generateStats() {
     }
     
     if ($raceid >0) {
-        $sql="SELECT * FROM tattendance a ";
+        $sql="SELECT a.WID, callsign, w.status, a.AID FROM tattendance a ";
         $sql .="INNER JOIN tpilots p ";
         $sql .="ON a.PID=p.PID ";
+        
+        $sql .="LEFT JOIN twaitlist w ";
+        $sql .="ON a.WID=w.WID ";
+        
         $sql .="WHERE a.RID=".$raceid." AND a.status=-1";
     
         foreach ($db->query($sql) as $row) {
             $tbl .="<tr>";
             $tbl .="<td style=\"width:30%\">".$row["callsign"]."</td>";
             
-            if ($row["WID"]>0) {
+            if ($row["WID"]>0 && $row["status"]<>0) {
                 $tbl .="<td style=\"text-align:center\"><div class=\"online\">&nbsp;</div></td>";
             }
             else {
