@@ -5,11 +5,12 @@ session_start();
 
 include "includes/functions.inc.php";
 include "includes/races.inc.php";
-
+include "includes/channels.inc.php";
 $pid=0;
 $raceid=0;
 $action="";
 $optionid=0;
+$cid=0;
 
 if (isset($_POST["race"])) {
     $raceid=$_POST["race"];
@@ -23,6 +24,17 @@ if (isset($_GET["race"])) {
 
 if (isset($_SESSION["raceid"])) {
     //$raceid=$_SESSION["raceid"];
+}
+
+
+if (isset($_POST["cid"])) {
+    $cid=$_POST["cid"];
+    //$_SESSION["raceid"]=$raceid;
+}
+
+if (isset($_GET["cid"])) {
+    $cid=$_GET["cid"];
+    //$_SESSION["raceid"]=$raceid;
 }
 
 
@@ -54,13 +66,11 @@ $cbo=generateOptionCbo($optionid);
 
 
 
-
-
 if (isset($_GET["action"])) {
 
     $action=$_GET["action"];
     
-    switch ($_GET["action"]) {
+    switch ($action) {
     
         case "save":
         
@@ -70,16 +80,16 @@ if (isset($_GET["action"])) {
                     //print_r($_POST);
                     $racename=$_POST["race_name"];
                     $racedate=$_POST["race_date"];
-                    $racestatuse=$_POST["status"];
+                    $racestatus=$_POST["status"];
                     
                     //Daten in traces speichern
                     if ($raceid==0) {
                         //neu
-                        $raceid=addRace($racename, $racedate, $racestatuse);
+                        $raceid=addRace($racename, $racedate, $racestatus);
                     }
                     else {
                         //update
-                        updateRace($raceid, $racename, $racedate, $racestatuse);
+                        updateRace($raceid, $racename, $racedate, $racestatus);
                     }
                     
                     //Channel-Konfig speichern
@@ -103,6 +113,21 @@ if (isset($_GET["action"])) {
                     
                 case 1:
                     ///Channel
+                    
+                    $ch_name=$_POST["channel_name"];
+                    $ch_status=$_POST["status"];
+                    $ch_band=$_POST["channel_band"];
+                    $ch_channel=$_POST["channel_channel"];
+                    $ch_address=$_POST["channel_address"];
+                    if ($cid==0) {
+                        //neu
+                        $cid=addchannel($ch_name, $ch_band, $ch_channel, $ch_address, $ch_status);
+                    }
+                    else {
+                        //update
+                        updateChannel($cid, $ch_name, $ch_band, $ch_channel, $ch_address, $ch_status);
+                    }
+                    
                     break;
             }
             
@@ -110,9 +135,20 @@ if (isset($_GET["action"])) {
 
             
         case "delete":
-            $rid=$_GET["id"];
-            
-            deleteRace($rid);
+        
+            switch ($optionid) {
+                case 0:
+                    //Races
+                    deleteRace($rid);
+                    break;
+                    
+                case 1:
+                    deleteChannel($cid);
+                    break;
+                    
+                default:
+                
+            }
             
             break;
         default:
@@ -156,6 +192,12 @@ if (isset($_GET["action"])) {
                 echo $lstRaces;
 
             }
+            else if ($optionid==1) {
+
+                $lstChannel=generateChannelList($cid);
+                echo $lstChannel;
+
+            }
             ?>
 
             
@@ -174,6 +216,19 @@ if (isset($_GET["action"])) {
                     if ($action=="neu") {
                         $racedetails=ladeRace(0);
                         echo $racedetails;
+                    }
+                
+                }
+            }
+            else if ($optionid==1) {
+                if ($cid>0) {
+                    $channeldetails=ladeChannel($cid);
+                    echo $channeldetails;
+                }
+                else {
+                    if ($action=="neu") {
+                        $channeldetails=ladeChannel(0);
+                        echo $channeldetails;
                     }
                 }
             }
