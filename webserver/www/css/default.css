@@ -1,0 +1,266 @@
+html, body {
+    padding:0;
+    margin:0;
+}
+html, body, option, select, input, a {
+    font-family:verdana, sans-serif;
+    font-size:1.1em;
+    
+}
+
+body {
+    background-color:#000;
+    color:#fff;
+}
+
+h2 {
+    font-family:verdana, sans-serif;
+    font-size:1.1em;
+    font-weight: bold;
+    
+}
+
+section, nav {
+    background-color: #f2f2f2;
+    color:black;
+    border: 1px solid #ccc;
+    border-radius: 0.2em;
+    padding:0.5em;
+    margin:0.5em;
+}
+
+
+section.navi ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.stats table, .stats td, .stats th {
+    border-spacing: 1px;
+    border-collapse: collapse;
+    border: 1px solid #ccc;
+    padding:0.5em;
+}
+.rowCh div {
+    
+ float:left;
+ display:inline-block;
+ padding:1em;
+ border: 1px solid #ccc;
+ margin:0.5em;
+ 
+}
+.rowCh input[type=checkbox] {
+    
+ margin-bottom:0.5em; 
+ 
+}
+table div.online {
+    background-color:#00ff11;
+}
+
+table div.offline {
+    background-color:#dddddd;
+}
+
+table div.online, table div.offline {
+    border: 0.1em solid #ccc;
+    border-radius:1em;
+    margin-left:25%;
+    width:50%;
+}
+
+.rowCh input {
+    width:3em;
+}
+
+nav.pilots ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    padding-bottom:1em;
+}
+
+
+section.pilot input[type=text], section.pilot select, section.pilot textarea {
+    width: 30%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 0.2em;
+    resize: vertical;
+}
+
+
+
+input[type=submit] {
+    background-color: #4CAF50;
+    color: white;
+    padding: 1em 1em;
+    margin-left:1em;
+    border: none;
+    border-radius: 0.2em;
+    cursor: pointer;
+    float: right;
+}
+
+section.pilot {
+
+    display:block;
+    min-width:70%;
+    float: right;
+}
+
+
+.col-25 {
+    float: left;
+    width: 25%;
+
+}
+
+
+
+.col-75 {
+    float: left;
+    width: 75%;
+
+}
+
+.row, .rowCh {
+    padding-bottom:1em;
+    
+}
+/* Clear floats after the columns */
+.row:after, .rowCh:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+
+
+nav.pilots a {
+    color:#000000;
+    text-decoration: None;
+}
+
+nav.pilots a:hover {
+    color:#ccc;
+    text-decoration: None;
+}
+
+nav.pilots  a.neubutton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 1em 1em;
+    margin-left:1em;
+    border: none;
+    border-radius: 0.2em;
+    cursor: pointer;
+    float: right;
+    color:#fff;
+}
+
+
+section.pilot a.loeschbutton {
+    background-color: #ff0000;
+    color: white;
+    padding: 1em 1em;
+    margin-left:1em;
+    border: none;
+    border-radius: 0.2em;
+    text-decoration:none;
+    cursor: pointer;
+    float: left;
+    color:#fff;
+}
+
+
+section.navi {
+    background-color:#333;
+    box-shadow: 0em 0.8em 0.8em #666;
+    padding:0.5em;
+    border:none;
+}
+
+section.navi li {
+    float: left;
+}
+
+
+nav.pilots {
+    float: left;
+    width: 25%;
+
+}
+
+
+section.racetable {
+    padding:0;
+    background-color:#333;
+}
+
+section.racetable table {
+    table-layout:fixed;
+
+}
+
+
+section.navi li a {
+    display: block;
+    padding: 0.5em;
+    margin:0.3em;
+    background-color: #dddddd;
+    color:#000000;
+    text-decoration: None;
+    -webkit-border-radius: 1em;
+    -moz-border-radius: 1em;
+    border-radius: 0.2em;
+    box-shadow: 0.1em 0.2em 5px grey;
+}
+
+section.navi li a:hover {
+    background-color:#333333;
+    color:#ffffff;
+}
+
+.col-25 input {
+    width:80% !IMPORTANT;
+} 
+
+.rowCh span {
+    background-color:#fff;
+    padding:0.1em;
+    display:inline-block;
+    width:75%;
+    
+    border-radius:0.2em;
+}
+
+
+
+.rowCh div {
+    border-radius: 1.6em;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* Responsive layout - when the screen is less than 600px wide, make the two columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 600px) {
+    .col-25, .col-75  , input[type=submit] {
+        width: 100%;
+        margin-top: 0;
+    }
+}
+
+
