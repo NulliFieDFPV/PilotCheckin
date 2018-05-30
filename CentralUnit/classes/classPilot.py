@@ -217,6 +217,9 @@ class cPilot(object):
 
     @property
     def inflight(self):
+        #falls von aussen der status zurueck gesetzt wurde
+        self.__updateCheckInData()
+
         return self.__isFlying
 
 
