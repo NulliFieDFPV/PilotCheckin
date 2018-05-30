@@ -77,11 +77,11 @@ class cChannel(object):
         sql = sql + "INNER JOIN tpilots p ".format(sqltbl["pilots"])
         sql = sql + "ON a.PID=p.PID "
 
-        sql = sql + "LEFT JOIN {} r ".format(sqltbl["rfid"])
+        sql = sql + "INNER JOIN {} r ".format(sqltbl["rfid"])
         sql = sql + "ON r.PID=p.PID "
 
-        sql = sql + "WHERE w.CID={} AND w.rid={} ".format(self.__cid, rid)
-        sql = sql + "AND w.status IN (-1,1) "
+        sql = sql + "WHERE w.CID={} AND w.RID={} ".format(self.__cid, rid)
+        sql = sql + "AND w.status IN (-1,1) AND a.status=-1"
 
         sql = sql + "ORDER BY w.status DESC, w.wait_date, w.wait_time"
         result = mydb.query(sql)
@@ -365,10 +365,10 @@ class cRace(object):
     def reset(self):
 
         mydb = db()
-        sql = "DELETE FROM {0} WHERE RID={1} ".format(sqltbl["waitlist"], self.__rid)
+        sql = "DELETE FROM {0} WHERE RID={1}; ".format(sqltbl["waitlist"], self.__rid)
         mydb.query(sql)
 
-        sql = "UPDATE {0} SET WID=0 WHERE RID={1} ".format(sqltbl["attendance"], self.__rid)
+        sql = "UPDATE {0} SET WID=0 WHERE RID={1}; ".format(sqltbl["attendance"], self.__rid)
         mydb.query(sql)
 
 
